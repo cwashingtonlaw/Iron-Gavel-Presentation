@@ -1,0 +1,64 @@
+{
+  "contract_version": "1.0",
+  "case": {
+    "caption": "State of Louisiana v. Marcus Landry",
+    "docket": "CR-2026-00417",
+    "court": "14th JDC Calcasieu Parish"
+  },
+  "generated": "2026-06-13T22:06:03+00:00",
+  "path_base": "sidecar_dir",
+  "exhibits": [
+    {
+      "id": "D-001",
+      "party": "Defense",
+      "description": "Body-cam still 21:14",
+      "file": "Exhibits_Admitted/D-001_bodycam_still.pdf",
+      "status": "admitted",
+      "media_type": "pdf",
+      "witness": "Ofc. Landry",
+      "bates": "DW000123-DW000123",
+      "ruling": "Overruled",
+      "notes": "key still"
+    },
+    {
+      "id": "S-014",
+      "party": "State",
+      "description": "Crime scene photo",
+      "file": "Exhibits_Pending/S-014_scene.JPG",
+      "status": "objected",
+      "media_type": "image",
+      "witness": "Det. Boudreaux",
+      "objection": "Foundation"
+    },
+    {
+      "id": "D-007",
+      "party": "Defense",
+      "description": "Cell tower map",
+      "file": "",
+      "status": "pending",
+      "media_type": "unknown",
+      "witness": "Expert Nguyen",
+      "notes": "demonstrative"
+    },
+    {
+      "id": "S-022",
+      "party": "State",
+      "description": "Alleged confession video",
+      "file": "Exhibits_Pending/S-022_confession.mp4",
+      "status": "excluded",
+      "media_type": "video",
+      "witness": "Det. Boudreaux",
+      "objection": "Miranda",
+      "ruling": "Excluded",
+      "notes": "suppressed"
+    },
+    {
+      "id": "J-002",
+      "party": "Joint",
+      "description": "Stipulation",
+      "file": "Exhibits_Admitted/J-002_stip.docx",
+      "status": "admitted",
+      "media_type": "unknown"
+    }
+  ]
+}
