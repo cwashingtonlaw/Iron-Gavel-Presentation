@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://danielswashington.law/schemas/exhibits.schema.json",
+  "title": "Courtroom Justice Exhibit Sidecar",
+  "description": "Machine-readable projection of the dw-exhibit-manager ledger. The .xlsx remains the human/skill system of record; this JSON is read-only to the app. Frozen contract v1.0.",
+  "type": "object",
+  "required": ["contract_version", "case", "generated", "exhibits"],
+  "additionalProperties": false,
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Bump only on a breaking change. The app refuses a major version it does not recognize."
+    },
+    "case": {
+      "type": "object",
+      "required": ["caption", "docket", "court"],
+      "additionalProperties": false,
+      "properties": {
+        "caption": { "type": "string", "minLength": 1 },
+        "docket": { "type": "string" },
+        "court": { "type": "string" }
+      }
+    },
+    "generated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 with offset; when this sidecar was written."
+    },
+    "path_base": {
+      "type": "string",
+      "const": "sidecar_dir",
+      "description": "Declares that every exhibit.file path is relative to the directory containing THIS file (i.e., {CASE_ROOT}/Trial/). Frozen so the app never guesses."
+    },
+    "exhibits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "party", "description", "file", "status", "media_type"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z]+-[0-9]{3,}$",
+            "description": "e.g. D-001, S-014, J-002. Letter prefix + zero-padded number."
+          },
+          "party": { "type": "string", "enum": ["Defense", "State", "Joint", "Court"] },
+          "description": { "type": "string" },
+          "file": {
+            "type": "string",
+            "description": "Path relative to the sidecar directory. Empty string allowed ONLY when status is pending and no file is staged yet."
+          },
+          "witness": { "type": "string" },
+          "bates": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "offered", "objected", "admitted", "excluded"]
+          },
+          "media_type": {
+            "type": "string",
+            "enum": ["pdf", "image", "video", "unknown"]
+          },
+          "objection": {
+            "type": "string",
+            "description": "Free text of the objection logged, if any. Informational; not used for publish gating."
+          },
+          "ruling": { "type": "string" },
+          "notes": { "type": "string" }
+        }
+      }
+    }
+  }
+}
