@@ -32,6 +32,7 @@ targets:
       - target: IronGavel
     settings:
       base:
+        GENERATE_INFOPLIST_FILE: YES
         BUNDLE_LOADER: $(TEST_HOST)
         TEST_HOST: $(BUILT_PRODUCTS_DIR)/IronGavel.app/IronGavel
   IronGavelUITests:
@@ -41,6 +42,9 @@ targets:
       - path: IronGavelUITests
     dependencies:
       - target: IronGavel
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
 schemes:
   IronGavel:
     build:
