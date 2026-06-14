@@ -28,6 +28,15 @@ targets:
     platform: iOS
     sources:
       - path: IronGavelTests
+        excludes:
+          - "Fixtures/BadVersion/**"
+          - "Fixtures/BadJSON/**"
+      - path: IronGavelTests/Fixtures/BadVersion
+        buildPhase: resources
+        type: folder
+      - path: IronGavelTests/Fixtures/BadJSON
+        buildPhase: resources
+        type: folder
     dependencies:
       - target: IronGavel
     settings:

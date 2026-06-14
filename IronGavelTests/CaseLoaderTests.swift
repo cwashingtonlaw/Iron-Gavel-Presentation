@@ -25,3 +25,33 @@ final class CaseLoaderTests: XCTestCase {
         }
     }
 }
+
+extension CaseLoaderTests {
+    private func resourceFolder(named name: String) throws -> URL {
+        let bundle = Bundle(for: type(of: self))
+        let url = try XCTUnwrap(bundle.url(forResource: name, withExtension: nil))
+        return url
+    }
+
+    func test_unsupported_contract_version_throws() throws {
+        let loader = CaseLoader()
+        let folder = try resourceFolder(named: "BadVersion")
+        XCTAssertThrowsError(try loader.load(folderURL: folder)) { err in
+            guard case let CaseLoadError.unsupportedContractVersion(found, supported) = err else {
+                return XCTFail("expected .unsupportedContractVersion, got \(err)")
+            }
+            XCTAssertEqual(found, "2.0")
+            XCTAssertEqual(supported, "1.0")
+        }
+    }
+
+    func test_bad_json_throws_decode_failed() throws {
+        let loader = CaseLoader()
+        let folder = try resourceFolder(named: "BadJSON")
+        XCTAssertThrowsError(try loader.load(folderURL: folder)) { err in
+            guard case CaseLoadError.decodeFailed = err else {
+                return XCTFail("expected .decodeFailed, got \(err)")
+            }
+        }
+    }
+}

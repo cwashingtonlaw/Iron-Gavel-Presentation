@@ -1,0 +1,7 @@
+{
+  "contract_version": "2.0",
+  "case": { "caption": "X", "docket": "Y", "court": "Z" },
+  "generated": "2026-06-14T09:00:00-05:00",
+  "path_base": "sidecar_dir",
+  "exhibits": []
+}
