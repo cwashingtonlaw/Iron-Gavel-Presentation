@@ -1,4 +1,4 @@
 import XCTest
-final class Placeholder: XCTestCase {
+final class IronGavelTestsPlaceholder: XCTestCase {
     func test_placeholder() { XCTAssertTrue(true) }
 }

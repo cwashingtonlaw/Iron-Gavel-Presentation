@@ -20,3 +20,15 @@ Package.resolved
 # Carthage / Pods (defensive)
 Pods/
 Carthage/Build/
+
+# Build artifacts
+*.xcresult/
+*.ipa
+*.dSYM/
+*.dSYM.zip
+
+# Code-signing assets — never commit
+*.mobileprovision
+*.p12
+*.cer
+*.certSigningRequest
