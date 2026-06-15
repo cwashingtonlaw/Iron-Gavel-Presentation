@@ -20,6 +20,7 @@ struct PreviewPane: View {
                     )
                 }
                 .padding(.horizontal, 12)
+                .accessibilityIdentifier("preview.pane")
                 if exhibit.mediaType == .pdf {
                     pageControls()
                 }
@@ -52,7 +53,6 @@ struct PreviewPane: View {
                 state.setPage(newValue)
             }
         }
-        .accessibilityIdentifier("preview.pane")
     }
 
     private func header(for exhibit: Exhibit) -> some View {

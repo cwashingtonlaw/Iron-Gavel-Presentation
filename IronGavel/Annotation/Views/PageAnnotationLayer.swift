@@ -27,6 +27,7 @@ struct PageAnnotationLayer: View {
                     .fill(annotation.color.uiColor.opacity(0.4))
                     .frame(width: b.w * size.width, height: b.h * size.height)
                     .position(x: (b.x + b.w/2) * size.width, y: (b.y + b.h/2) * size.height)
+                    .accessibilityElement()
                     .accessibilityIdentifier("annotation.highlight.\(annotation.id)")
             }
         case .redact:
@@ -35,6 +36,7 @@ struct PageAnnotationLayer: View {
                     .fill(Color.black)
                     .frame(width: b.w * size.width, height: b.h * size.height)
                     .position(x: (b.x + b.w/2) * size.width, y: (b.y + b.h/2) * size.height)
+                    .accessibilityElement()
                     .accessibilityIdentifier("annotation.redact.\(annotation.id)")
             }
         case .callout:
