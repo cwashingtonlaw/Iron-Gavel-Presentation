@@ -15,3 +15,15 @@ Run this before any courtroom use.
 - [ ] Blank Screen blacks out the jury display; toggling off restores the prior exhibit + page.
 - [ ] On the Mac, regenerate `exhibits.json` with one exhibit's status changed; within 60s the iPad reflects the change and (if the published exhibit was downgraded) auto-blanks with a banner.
 - [ ] Disconnect HDMI; reconnect; jury display resumes the same content.
+
+## Phase 2 — Annotation
+
+- [ ] Tap Highlight, drag a rectangle on a published exhibit; confirm the highlight appears on both presenter and jury display in real time.
+- [ ] Tap Redact, drag; confirm a solid black rectangle replaces the underlying content on the jury display.
+- [ ] Tap Callout, drag the source region, then drag the bubble location; confirm a zoomed copy of the source appears at the bubble location on both displays.
+- [ ] Tap Freehand; draw with Apple Pencil; confirm strokes appear live on the jury display.
+- [ ] Tap Undo; confirm the most recent annotation disappears from both displays.
+- [ ] Tap Clear; confirm the page is wiped on both displays after the confirmation sheet.
+- [ ] Tap Save Copy; open the file at `<CASE_ROOT>/Trial/Annotated/<id>-p<n>.pdf` in Files; confirm visual fidelity (highlights/redactions/callouts/freehand all baked in).
+- [ ] Quit the app; re-open the case; confirm annotations re-load identically.
+- [ ] Open the same case on a second iPad via iCloud; edit an annotation on one device; confirm the change appears on the other within ~30 s (last-write-wins).
