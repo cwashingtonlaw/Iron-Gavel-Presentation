@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://danielswashington.law/schemas/annotations.schema.json",
+  "title": "Iron Gavel Annotation Sidecar",
+  "description": "Per-exhibit annotation sidecar. Written by the Iron Gavel iPad app under <CASE_ROOT>/Trial/Annotations/<exhibit-id>.json. Frozen contract v1.0.",
+  "type": "object",
+  "required": ["contract_version", "exhibit_id", "last_modified", "pages"],
+  "additionalProperties": false,
+  "properties": {
+    "contract_version": { "type": "string", "const": "1.0" },
+    "exhibit_id":        { "type": "string", "pattern": "^[A-Za-z]+-[0-9]{3,}$" },
+    "last_modified":     { "type": "string", "format": "date-time" },
+    "pages": {
+      "type": "object",
+      "patternProperties": {
+        "^[0-9]+$": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "tool", "color"],
+            "additionalProperties": false,
+            "properties": {
+              "id":    { "type": "string", "format": "uuid" },
+              "tool":  { "enum": ["highlight", "redact", "callout", "freehand"] },
+              "color": { "type": "string", "pattern": "^#[0-9A-Fa-f]{8}$" },
+              "bounds":          { "$ref": "#/$defs/normRect" },
+              "callout_source":  { "$ref": "#/$defs/normRect" },
+              "ink_data_base64": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "normRect": {
+      "type": "object",
+      "required": ["x", "y", "w", "h"],
+      "additionalProperties": false,
+      "properties": {
+        "x": { "type": "number", "minimum": 0, "maximum": 1 },
+        "y": { "type": "number", "minimum": 0, "maximum": 1 },
+        "w": { "type": "number", "minimum": 0, "maximum": 1 },
+        "h": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    }
+  }
+}
