@@ -31,10 +31,18 @@ targets:
         excludes:
           - "Fixtures/BadVersion/**"
           - "Fixtures/BadJSON/**"
+          - "Fixtures/AnnotationsBadVersion/**"
+          - "Fixtures/AnnotationsBadJSON/**"
       - path: IronGavelTests/Fixtures/BadVersion
         buildPhase: resources
         type: folder
       - path: IronGavelTests/Fixtures/BadJSON
+        buildPhase: resources
+        type: folder
+      - path: IronGavelTests/Fixtures/AnnotationsBadVersion
+        buildPhase: resources
+        type: folder
+      - path: IronGavelTests/Fixtures/AnnotationsBadJSON
         buildPhase: resources
         type: folder
     dependencies:
