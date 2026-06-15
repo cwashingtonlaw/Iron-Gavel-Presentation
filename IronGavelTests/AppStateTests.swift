@@ -115,4 +115,26 @@ final class AppStateTests: XCTestCase {
 
         XCTAssertEqual(state.juryDisplay, before)
     }
+
+    func test_annotation_change_writes_to_disk_after_debounce() async throws {
+        let tmpRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("iron-gavel-state-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: tmpRoot, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tmpRoot) }
+
+        let admitted = exhibit("D-001", status: .admitted)
+        let state = AppState()
+        state.apply(case: makeCase([admitted]), folder: tmpRoot)
+        state.select(admitted)
+
+        let mark = Annotation(tool: .highlight, color: .yellow,
+                              bounds: NormalizedRect(x: 0.1, y: 0.1, w: 0.2, h: 0.05))
+        state.annotationStore.add(mark, exhibitId: "D-001", page: 0)
+
+        try await Task.sleep(nanoseconds: 800_000_000)
+
+        let saved = tmpRoot.appendingPathComponent("Trial/Annotations/D-001.json")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: saved.path),
+                      "expected debounced save at \(saved.path)")
+    }
 }

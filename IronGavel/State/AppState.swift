@@ -16,6 +16,9 @@ final class AppState {
     var currentColor: AnnotationColor = .yellow
     let annotationStore = AnnotationStore()
 
+    @ObservationIgnored private var saveTasks: [String: Task<Void, Never>] = [:]
+    @ObservationIgnored private let writer = AnnotationWriter()
+
     init() {
         annotationStore.onChange = { [weak self] exhibitId in
             self?.handleAnnotationChange(for: exhibitId)
@@ -77,6 +80,19 @@ final class AppState {
         if case let .exhibit(published, page, _) = juryDisplay, published.id == exhibitId {
             let v = annotationStore.pageVersion(exhibitId: exhibitId, page: page)
             juryDisplay = .exhibit(published, page: page, annotationsVersion: v)
+        }
+        scheduleSave(exhibitId: exhibitId)
+    }
+
+    private func scheduleSave(exhibitId: String) {
+        guard let folder = caseFolderURL else { return }
+        saveTasks[exhibitId]?.cancel()
+        saveTasks[exhibitId] = Task { [annotationStore, writer] in
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            if Task.isCancelled { return }
+            let doc = await annotationStore.document(exhibitId: exhibitId)
+            let annotationsFolder = folder.appendingPathComponent("Trial/Annotations")
+            try? writer.write(doc, to: annotationsFolder)
         }
     }
 }
