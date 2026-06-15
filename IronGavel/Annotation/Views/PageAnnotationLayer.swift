@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PageAnnotationLayer: View {
     let exhibitId: String
+    let exhibitFileURL: URL?
     let page: Int
     @Environment(AppState.self) private var state
 
@@ -37,7 +38,7 @@ struct PageAnnotationLayer: View {
                     .accessibilityIdentifier("annotation.redact.\(annotation.id)")
             }
         case .callout:
-            EmptyView()
+            CalloutBubble(annotation: annotation, exhibitFileURL: exhibitFileURL, pageIndex: page)
         case .freehand:
             EmptyView()
         }
@@ -60,7 +61,15 @@ struct PageAnnotationLayer: View {
                     let ann = Annotation(tool: .redact, color: state.currentColor, bounds: rect)
                     state.annotationStore.add(ann, exhibitId: exhibitId, page: page)
                 })
-        case .callout, .freehand, .none:
+        case .callout:
+            Color.clear
+                .contentShape(Rectangle())
+                .modifier(CalloutGestureModifier(viewSize: viewSize) { source, bounds in
+                    let ann = Annotation(tool: .callout, color: state.currentColor,
+                                         bounds: bounds, calloutSource: source)
+                    state.annotationStore.add(ann, exhibitId: exhibitId, page: page)
+                })
+        case .freehand, .none:
             EmptyView()
         }
     }
