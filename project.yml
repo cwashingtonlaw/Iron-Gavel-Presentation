@@ -33,7 +33,6 @@ targets:
           - "Fixtures/BadJSON/**"
           - "Fixtures/AnnotationsBadVersion/**"
           - "Fixtures/AnnotationsBadJSON/**"
-          - "Fixtures/FlattenSource/**"
       - path: IronGavelTests/Fixtures/BadVersion
         buildPhase: resources
         type: folder
@@ -44,9 +43,6 @@ targets:
         buildPhase: resources
         type: folder
       - path: IronGavelTests/Fixtures/AnnotationsBadJSON
-        buildPhase: resources
-        type: folder
-      - path: IronGavelTests/Fixtures/FlattenSource
         buildPhase: resources
         type: folder
     dependencies:
