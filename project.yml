@@ -1,0 +1,67 @@
+name: IronGavel
+options:
+  bundleIdPrefix: com.danielswashington
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+  developmentLanguage: en
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+    GENERATE_INFOPLIST_FILE: NO
+targets:
+  IronGavel:
+    type: application
+    platform: iOS
+    sources:
+      - path: IronGavel
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.danielswashington.irongavel
+        TARGETED_DEVICE_FAMILY: "2"
+        INFOPLIST_FILE: IronGavel/Resources/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: ""
+  IronGavelTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: IronGavelTests
+        excludes:
+          - "Fixtures/BadVersion/**"
+          - "Fixtures/BadJSON/**"
+      - path: IronGavelTests/Fixtures/BadVersion
+        buildPhase: resources
+        type: folder
+      - path: IronGavelTests/Fixtures/BadJSON
+        buildPhase: resources
+        type: folder
+    dependencies:
+      - target: IronGavel
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        BUNDLE_LOADER: $(TEST_HOST)
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/IronGavel.app/IronGavel
+  IronGavelUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: IronGavelUITests
+    dependencies:
+      - target: IronGavel
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  IronGavel:
+    build:
+      targets:
+        IronGavel: all
+        IronGavelTests: [test]
+        IronGavelUITests: [test]
+    test:
+      targets:
+        - IronGavelTests
+        - IronGavelUITests
