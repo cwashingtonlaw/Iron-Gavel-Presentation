@@ -56,6 +56,7 @@ struct PresenterScene: View {
         do {
             let kase = try loader.load(folderURL: url)
             state.apply(case: kase, folder: url)
+            preloadAnnotations(folder: url, exhibits: kase.exhibits)
             watcher = CaseWatcher(folderURL: url) {
                 if let newCase = try? loader.load(folderURL: url) {
                     state.apply(case: newCase, folder: url)
@@ -85,5 +86,15 @@ struct PresenterScene: View {
         }
         if stale { bookmarks.clear(); return }
         openFolder(url, persistBookmark: false)
+    }
+
+    private func preloadAnnotations(folder: URL, exhibits: [Exhibit]) {
+        let annotationsFolder = folder.appendingPathComponent("Trial/Annotations")
+        let loader = AnnotationLoader()
+        for exhibit in exhibits {
+            if let doc = try? loader.load(annotationsFolder: annotationsFolder, exhibitId: exhibit.id) {
+                state.annotationStore.apply(doc)
+            }
+        }
     }
 }
