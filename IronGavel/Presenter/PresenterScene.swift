@@ -4,6 +4,7 @@ struct PresenterScene: View {
     @Environment(AppState.self) private var state
     @State private var showFolderPicker = false
     @State private var loadError: String?
+    @State private var watcher: CaseWatcher?
 
     private let loader = CaseLoader()
     private let bookmarks = BookmarkStore()
@@ -55,6 +56,11 @@ struct PresenterScene: View {
         do {
             let kase = try loader.load(folderURL: url)
             state.apply(case: kase, folder: url)
+            watcher = CaseWatcher(folderURL: url) {
+                if let newCase = try? loader.load(folderURL: url) {
+                    state.apply(case: newCase, folder: url)
+                }
+            }
             if persistBookmark {
                 let data = try url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
                 bookmarks.save(data)
