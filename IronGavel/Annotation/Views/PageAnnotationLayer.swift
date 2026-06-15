@@ -40,7 +40,9 @@ struct PageAnnotationLayer: View {
         case .callout:
             CalloutBubble(annotation: annotation, exhibitFileURL: exhibitFileURL, pageIndex: page)
         case .freehand:
-            EmptyView()
+            FreehandReadOnly(annotation: annotation, color: annotation.color.uiColor)
+                .allowsHitTesting(false)
+                .accessibilityIdentifier("annotation.freehand.\(annotation.id)")
         }
     }
 
@@ -69,8 +71,60 @@ struct PageAnnotationLayer: View {
                                          bounds: bounds, calloutSource: source)
                     state.annotationStore.add(ann, exhibitId: exhibitId, page: page)
                 })
-        case .freehand, .none:
+        case .freehand:
+            FreehandActive(exhibitId: exhibitId, page: page, viewSize: viewSize)
+        case .none:
             EmptyView()
+        }
+    }
+}
+
+private struct FreehandReadOnly: View {
+    let annotation: Annotation
+    let color: Color
+
+    var body: some View {
+        let data = decodedData()
+        FreehandCanvas(
+            drawingData: .constant(data),
+            inkColor: UIColor(color),
+            isPresenter: false
+        )
+    }
+
+    private func decodedData() -> Data {
+        guard let b64 = annotation.inkDataBase64,
+              let d = Data(base64Encoded: b64) else { return Data() }
+        return d
+    }
+}
+
+private struct FreehandActive: View {
+    let exhibitId: String
+    let page: Int
+    let viewSize: CGSize
+    @Environment(AppState.self) private var state
+    @State private var data: Data = Data()
+
+    var body: some View {
+        FreehandCanvas(
+            drawingData: $data,
+            inkColor: UIColor(state.currentColor.uiColor),
+            isPresenter: true
+        )
+        .onChange(of: data) { _, newValue in
+            let b64 = newValue.base64EncodedString()
+            let ann = Annotation(tool: .freehand,
+                                 color: state.currentColor,
+                                 inkDataBase64: b64)
+            state.annotationStore.add(ann, exhibitId: exhibitId, page: page)
+        }
+        .onAppear {
+            let existing = state.annotationStore.annotations(exhibitId: exhibitId, page: page)
+                .first(where: { $0.tool == .freehand })
+            if let b64 = existing?.inkDataBase64, let d = Data(base64Encoded: b64) {
+                data = d
+            }
         }
     }
 }
