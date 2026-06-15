@@ -20,17 +20,29 @@ struct JuryView: View {
             BlankView()
         case let .exhibit(exhibit, page, _):
             if let fileURL = resolvedURL(for: exhibit) {
-                switch exhibit.mediaType {
-                case .pdf:
-                    PDFJuryView(fileURL: fileURL, pageIndex: page)
-                case .image:
-                    ImageJuryView(fileURL: fileURL)
-                case .video, .unknown:
-                    BlankView()
+                ZStack {
+                    mediaContent(exhibit: exhibit, fileURL: fileURL, page: page)
+                    PageAnnotationLayerJury(
+                        exhibitId: exhibit.id,
+                        exhibitFileURL: fileURL,
+                        page: page
+                    )
                 }
             } else {
                 BlankView()
             }
+        }
+    }
+
+    @ViewBuilder
+    private func mediaContent(exhibit: Exhibit, fileURL: URL, page: Int) -> some View {
+        switch exhibit.mediaType {
+        case .pdf:
+            PDFJuryView(fileURL: fileURL, pageIndex: page)
+        case .image:
+            ImageJuryView(fileURL: fileURL)
+        case .video, .unknown:
+            BlankView()
         }
     }
 
