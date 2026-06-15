@@ -12,18 +12,29 @@ final class AppState {
     var externalConnected: Bool = false
     var lastStatusBanner: String?
 
+    var currentTool: AnnotationTool?
+    var currentColor: AnnotationColor = .yellow
+    let annotationStore = AnnotationStore()
+
+    init() {
+        annotationStore.onChange = { [weak self] exhibitId in
+            self?.handleAnnotationChange(for: exhibitId)
+        }
+    }
+
     func apply(case kase: Case, folder: URL) {
         let previousCase = self.currentCase
         self.currentCase = kase
         self.caseFolderURL = folder
 
-        if let previousCase, case let .exhibit(published, _) = juryDisplay {
+        if let previousCase, case let .exhibit(published, page, _) = juryDisplay {
             let updated = kase.exhibits.first(where: { $0.id == published.id })
             if let updated, updated.status != .admitted, published.status == .admitted {
                 juryDisplay = .blank
                 lastStatusBanner = "Exhibit \(published.id) status changed to \(updated.status.rawValue). Jury display blanked."
             }
             _ = previousCase
+            _ = page
         }
     }
 
@@ -33,15 +44,16 @@ final class AppState {
 
     func publishSelected() {
         guard let exhibit = selectedExhibit, exhibit.status == .admitted else { return }
-        let display: JuryDisplay = .exhibit(exhibit, page: 0)
-        juryDisplay = display
+        let v = annotationStore.pageVersion(exhibitId: exhibit.id, page: 0)
+        juryDisplay = .exhibit(exhibit, page: 0, annotationsVersion: v)
         lastPublished = (exhibit, 0)
         lastStatusBanner = nil
     }
 
     func setPage(_ page: Int) {
-        if case let .exhibit(exhibit, _) = juryDisplay {
-            juryDisplay = .exhibit(exhibit, page: page)
+        if case let .exhibit(exhibit, _, _) = juryDisplay {
+            let v = annotationStore.pageVersion(exhibitId: exhibit.id, page: page)
+            juryDisplay = .exhibit(exhibit, page: page, annotationsVersion: v)
             lastPublished = (exhibit, page)
         }
     }
@@ -52,11 +64,19 @@ final class AppState {
 
     func restore() {
         if let last = lastPublished {
-            juryDisplay = .exhibit(last.exhibit, page: last.page)
+            let v = annotationStore.pageVersion(exhibitId: last.exhibit.id, page: last.page)
+            juryDisplay = .exhibit(last.exhibit, page: last.page, annotationsVersion: v)
         }
     }
 
     func dismissBanner() {
         lastStatusBanner = nil
+    }
+
+    private func handleAnnotationChange(for exhibitId: String) {
+        if case let .exhibit(published, page, _) = juryDisplay, published.id == exhibitId {
+            let v = annotationStore.pageVersion(exhibitId: exhibitId, page: page)
+            juryDisplay = .exhibit(published, page: page, annotationsVersion: v)
+        }
     }
 }

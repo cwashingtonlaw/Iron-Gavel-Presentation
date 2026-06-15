@@ -22,7 +22,7 @@ struct PreviewPane: View {
         }
         .onChange(of: page) { _, newValue in
             if let exhibit = state.selectedExhibit,
-               case let .exhibit(currentExhibit, _) = state.juryDisplay,
+               case let .exhibit(currentExhibit, _, _) = state.juryDisplay,
                currentExhibit.id == exhibit.id {
                 state.setPage(newValue)
             }

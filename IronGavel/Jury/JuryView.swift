@@ -18,7 +18,7 @@ struct JuryView: View {
             EmptyView()
         case .blank:
             BlankView()
-        case let .exhibit(exhibit, page):
+        case let .exhibit(exhibit, page, _):
             if let fileURL = resolvedURL(for: exhibit) {
                 switch exhibit.mediaType {
                 case .pdf:

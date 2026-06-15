@@ -28,7 +28,7 @@ final class AppStateTests: XCTestCase {
         state.apply(case: makeCase([admitted]), folder: URL(fileURLWithPath: "/tmp"))
         state.select(admitted)
         state.publishSelected()
-        XCTAssertEqual(state.juryDisplay, .exhibit(admitted, page: 0))
+        XCTAssertEqual(state.juryDisplay, .exhibit(admitted, page: 0, annotationsVersion: 0))
     }
 
     func test_publish_non_admitted_exhibit_is_no_op() {
@@ -50,7 +50,7 @@ final class AppStateTests: XCTestCase {
         state.blank()
         XCTAssertEqual(state.juryDisplay, .blank)
         state.restore()
-        XCTAssertEqual(state.juryDisplay, .exhibit(admitted, page: 3))
+        XCTAssertEqual(state.juryDisplay, .exhibit(admitted, page: 3, annotationsVersion: 0))
     }
 
     func test_status_downgrade_on_published_exhibit_auto_blanks() {
@@ -79,7 +79,40 @@ final class AppStateTests: XCTestCase {
 
         state.apply(case: makeCase([admitted, otherChanged]), folder: URL(fileURLWithPath: "/tmp"))
 
-        XCTAssertEqual(state.juryDisplay, .exhibit(admitted, page: 0))
+        XCTAssertEqual(state.juryDisplay, .exhibit(admitted, page: 0, annotationsVersion: 0))
         XCTAssertNil(state.lastStatusBanner)
+    }
+
+    func test_annotation_mutation_on_published_exhibit_bumps_jury_version() {
+        let admitted = exhibit("D-001", status: .admitted)
+        let state = AppState()
+        state.apply(case: makeCase([admitted]), folder: URL(fileURLWithPath: "/tmp"))
+        state.select(admitted)
+        state.publishSelected()
+
+        let v0 = state.juryDisplay.annotationsVersion ?? -1
+
+        let mark = Annotation(tool: .highlight, color: .yellow,
+                              bounds: NormalizedRect(x: 0.1, y: 0.1, w: 0.2, h: 0.05))
+        state.annotationStore.add(mark, exhibitId: "D-001", page: 0)
+
+        let v1 = state.juryDisplay.annotationsVersion ?? -1
+        XCTAssertGreaterThan(v1, v0)
+    }
+
+    func test_annotation_mutation_on_non_published_exhibit_does_not_change_jury() {
+        let admitted = exhibit("D-001", status: .admitted)
+        let state = AppState()
+        state.apply(case: makeCase([admitted]), folder: URL(fileURLWithPath: "/tmp"))
+        state.select(admitted)
+        state.publishSelected()
+
+        let before = state.juryDisplay
+
+        let mark = Annotation(tool: .highlight, color: .yellow,
+                              bounds: NormalizedRect(x: 0.1, y: 0.1, w: 0.2, h: 0.05))
+        state.annotationStore.add(mark, exhibitId: "S-999", page: 0)
+
+        XCTAssertEqual(state.juryDisplay, before)
     }
 }
