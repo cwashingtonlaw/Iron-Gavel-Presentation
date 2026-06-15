@@ -1,0 +1,38 @@
+{
+  "contract_version": "1.0",
+  "case": {
+    "caption": "State v. Doe",
+    "docket": "2026-CR-00042",
+    "court": "14th JDC, Calcasieu Parish"
+  },
+  "generated": "2026-06-14T09:00:00-05:00",
+  "path_base": "sidecar_dir",
+  "exhibits": [
+    {
+      "id": "D-001",
+      "party": "Defense",
+      "description": "Photo of intersection",
+      "file": "Exhibits_Admitted/d001-intersection.pdf",
+      "status": "admitted",
+      "media_type": "pdf",
+      "witness": "Off. Smith",
+      "bates": "DEF0001",
+      "objection": "",
+      "ruling": "Overruled",
+      "notes": ""
+    },
+    {
+      "id": "S-014",
+      "party": "State",
+      "description": "Pending body cam clip",
+      "file": "Exhibits_Pending/s014-clip.pdf",
+      "status": "pending",
+      "media_type": "pdf",
+      "witness": "",
+      "bates": "",
+      "objection": "",
+      "ruling": "",
+      "notes": ""
+    }
+  ]
+}
