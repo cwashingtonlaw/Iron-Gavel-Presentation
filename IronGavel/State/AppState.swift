@@ -19,8 +19,10 @@ final class AppState {
 
     @ObservationIgnored private var saveTasks: [String: Task<Void, Never>] = [:]
     @ObservationIgnored private let writer = AnnotationWriter()
+    @ObservationIgnored private let publishStateStore: PublishStateStore
 
-    init() {
+    init(publishStateStore: PublishStateStore = PublishStateStore()) {
+        self.publishStateStore = publishStateStore
         annotationStore.onChange = { [weak self] exhibitId in
             self?.handleAnnotationChange(for: exhibitId)
         }
@@ -52,6 +54,7 @@ final class AppState {
         juryDisplay = .exhibit(exhibit, page: 0, annotationsVersion: v)
         lastPublished = (exhibit, 0)
         lastStatusBanner = nil
+        persistPublishState()
     }
 
     func setPage(_ page: Int) {
@@ -59,17 +62,46 @@ final class AppState {
             let v = annotationStore.pageVersion(exhibitId: exhibit.id, page: page)
             juryDisplay = .exhibit(exhibit, page: page, annotationsVersion: v)
             lastPublished = (exhibit, page)
+            persistPublishState()
         }
     }
 
     func blank() {
         juryDisplay = .blank
+        persistPublishState()
     }
 
     func restore() {
         if let last = lastPublished {
             let v = annotationStore.pageVersion(exhibitId: last.exhibit.id, page: last.page)
             juryDisplay = .exhibit(last.exhibit, page: last.page, annotationsVersion: v)
+            persistPublishState()
+        }
+    }
+
+    /// Re-publishes whatever the jury was last showing, after a relaunch.
+    /// Only restores if the saved exhibit still exists in the loaded case and is admitted.
+    func restorePublishedState() {
+        guard let saved = publishStateStore.load(),
+              let kase = currentCase,
+              let exhibit = kase.exhibits.first(where: { $0.id == saved.exhibitId }),
+              exhibit.status == .admitted else { return }
+        let v = annotationStore.pageVersion(exhibitId: exhibit.id, page: saved.page)
+        juryDisplay = .exhibit(exhibit, page: saved.page, annotationsVersion: v)
+        lastPublished = (exhibit, saved.page)
+        if saved.blanked { juryDisplay = .blank }
+    }
+
+    private func persistPublishState() {
+        switch juryDisplay {
+        case let .exhibit(exhibit, page, _):
+            publishStateStore.save(.init(exhibitId: exhibit.id, page: page, blanked: false))
+        case .blank:
+            if let last = lastPublished {
+                publishStateStore.save(.init(exhibitId: last.exhibit.id, page: last.page, blanked: true))
+            }
+        case .empty:
+            publishStateStore.clear()
         }
     }
 
