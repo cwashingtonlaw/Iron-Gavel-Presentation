@@ -54,4 +54,16 @@ extension CaseLoaderTests {
             }
         }
     }
+
+    func test_loads_from_trial_subfolder_when_root_absent() throws {
+        let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("igtrial-\(UUID().uuidString)")
+        let trial = tmp.appendingPathComponent("Trial")
+        try FileManager.default.createDirectory(at: trial, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tmp) }
+        let json = #"{"contract_version":"1.0","case":{"caption":"X","docket":"Y","court":"Z"},"generated":"t","path_base":"p","exhibits":[]}"#
+        try json.data(using: .utf8)!.write(to: trial.appendingPathComponent("exhibits.json"))
+
+        let kase = try CaseLoader().load(folderURL: tmp)
+        XCTAssertEqual(kase.exhibits.count, 0)
+    }
 }

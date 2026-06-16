@@ -2,10 +2,15 @@ import Foundation
 
 struct CaseLoader {
     func load(folderURL: URL) throws -> Case {
-        let sidecarURL = folderURL.appendingPathComponent("exhibits.json")
-
-        guard FileManager.default.fileExists(atPath: sidecarURL.path) else {
-            throw CaseLoadError.missingSidecar(path: sidecarURL.path)
+        let rootSidecar = folderURL.appendingPathComponent("exhibits.json")
+        let trialSidecar = folderURL.appendingPathComponent("Trial/exhibits.json")
+        let sidecarURL: URL
+        if FileManager.default.fileExists(atPath: rootSidecar.path) {
+            sidecarURL = rootSidecar
+        } else if FileManager.default.fileExists(atPath: trialSidecar.path) {
+            sidecarURL = trialSidecar
+        } else {
+            throw CaseLoadError.missingSidecar(path: rootSidecar.path)
         }
 
         let data: Data
