@@ -19,11 +19,16 @@ struct ExhibitSidebar: View {
             ForEach(Party.allCases, id: \.self) { party in
                 let items = exhibits(for: party)
                 if !items.isEmpty {
-                    Section(party.rawValue) {
+                    Section {
                         ForEach(items) { exhibit in
                             row(for: exhibit)
                                 .tag(exhibit.id)
                         }
+                    } header: {
+                        Text(party.rawValue.uppercased())
+                            .font(Theme.Typography.sectionLabel)
+                            .tracking(1.0)
+                            .foregroundStyle(Theme.Palette.accentDeep)
                     }
                 }
             }
@@ -35,18 +40,22 @@ struct ExhibitSidebar: View {
 
     @ViewBuilder
     private func row(for exhibit: Exhibit) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Text(exhibit.id).font(.system(.body, design: .monospaced))
-            VStack(alignment: .leading, spacing: 2) {
-                Text(exhibit.description).lineLimit(2)
-                if let witness = exhibit.witness, !witness.isEmpty {
-                    Text(witness).font(.caption).foregroundStyle(.secondary)
-                }
+        VStack(alignment: .leading, spacing: Theme.Spacing.xs + 2) {
+            HStack(spacing: Theme.Spacing.s) {
+                ExhibitNumberChip(number: exhibit.displayNumber)
+                Spacer(minLength: Theme.Spacing.s)
+                StatusBadge(status: exhibit.status)
             }
-            Spacer()
-            StatusBadge(status: exhibit.status)
+            Text(exhibit.description)
+                .font(Theme.Typography.itemTitle)
+                .lineLimit(2)
+            if let witness = exhibit.witness, !witness.isEmpty {
+                Label(witness, systemImage: "person")
+                    .font(Theme.Typography.meta)
+                    .foregroundStyle(Theme.Palette.mutedText)
+            }
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, Theme.Spacing.xs)
         .accessibilityIdentifier("exhibit.row.\(exhibit.id)")
     }
 

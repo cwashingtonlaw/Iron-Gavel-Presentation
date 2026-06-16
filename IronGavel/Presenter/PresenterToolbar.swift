@@ -54,6 +54,7 @@ struct PresenterToolbar: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
+        .tint(Theme.Palette.accent)
         .sheet(isPresented: $showSettings) {
             SettingsView(settings: state.settings) { showSettings = false }
         }
