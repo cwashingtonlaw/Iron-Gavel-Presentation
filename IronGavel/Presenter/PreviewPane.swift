@@ -18,7 +18,7 @@ struct PreviewPane: View {
                 ViewportContainer(viewport: state.juryViewport) {
                     ZStack {
                         content(exhibit: exhibit, fileURL: fileURL)
-                        if !(exhibit.mediaType == .video && state.videoController.isPlaying) {
+                        if showsAnnotationLayer(for: exhibit) {
                             PageAnnotationLayer(
                                 exhibitId: exhibit.id,
                                 exhibitFileURL: fileURL,
@@ -37,20 +37,22 @@ struct PreviewPane: View {
                 }
                 .padding(.horizontal, 12)
                 .accessibilityIdentifier("preview.pane")
-                if exhibit.mediaType != .video {
+                if exhibit.mediaType == .pdf || exhibit.mediaType == .image {
                     zoomControls()
                 }
                 if exhibit.mediaType == .pdf {
                     pageControls()
                 }
-                if exhibit.mediaType == .video {
+                if exhibit.mediaType == .video || exhibit.mediaType == .audio {
                     VideoTransportControls()
                 }
-                AnnotationToolbar(
-                    exhibitId: exhibit.id,
-                    page: page,
-                    onExport: { exportFlattened(exhibit: exhibit, fileURL: fileURL) }
-                )
+                if exhibit.mediaType != .audio {
+                    AnnotationToolbar(
+                        exhibitId: exhibit.id,
+                        page: page,
+                        onExport: { exportFlattened(exhibit: exhibit, fileURL: fileURL) }
+                    )
+                }
                 if let toast = exportToast {
                     Text(toast)
                         .font(.caption)
@@ -128,9 +130,17 @@ struct PreviewPane: View {
             ImagePreview(fileURL: fileURL)
         case .video:
             VideoPresenterView(player: state.videoController.player)
+        case .audio:
+            NowPlayingCard(title: exhibit.id, subtitle: exhibit.description)
         case .unknown:
             Text("Unsupported media type").foregroundStyle(.secondary)
         }
+    }
+
+    private func showsAnnotationLayer(for exhibit: Exhibit) -> Bool {
+        if exhibit.mediaType == .audio { return false }
+        if exhibit.mediaType == .video && state.videoController.isPlaying { return false }
+        return true
     }
 
     @ViewBuilder
@@ -174,7 +184,7 @@ struct PreviewPane: View {
 
     private func loadVideoIfNeeded() {
         guard let exhibit = state.selectedExhibit,
-              exhibit.mediaType == .video,
+              exhibit.mediaType == .video || exhibit.mediaType == .audio,
               let url = resolvedURL(for: exhibit) else { return }
         state.videoController.load(url: url)
     }

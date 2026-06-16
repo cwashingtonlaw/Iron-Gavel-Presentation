@@ -46,6 +46,19 @@
       "objection": "",
       "ruling": "Overruled",
       "notes": ""
+    },
+    {
+      "id": "A-001",
+      "party": "Court",
+      "description": "911 call recording",
+      "file": "Exhibits_Admitted/a001-911.m4a",
+      "status": "admitted",
+      "media_type": "audio",
+      "witness": "Dispatcher",
+      "bates": "DEF0011",
+      "objection": "",
+      "ruling": "Overruled",
+      "notes": ""
     }
   ]
 }

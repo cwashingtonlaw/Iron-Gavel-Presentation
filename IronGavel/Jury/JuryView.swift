@@ -42,7 +42,8 @@ struct JuryView: View {
                 ViewportContainer(viewport: state.juryViewport) {
                     ZStack {
                         mediaContent(exhibit: exhibit, fileURL: fileURL, page: page)
-                        if !(exhibit.mediaType == .video && state.videoController.isPlaying) {
+                        if exhibit.mediaType != .audio,
+                           !(exhibit.mediaType == .video && state.videoController.isPlaying) {
                             PageAnnotationLayerJury(
                                 exhibitId: exhibit.id,
                                 exhibitFileURL: fileURL,
@@ -66,9 +67,16 @@ struct JuryView: View {
             ImageJuryView(fileURL: fileURL)
         case .video:
             VideoJuryView(player: state.videoController.player)
+        case .audio:
+            NowPlayingCard(title: exhibit.id, subtitle: exhibit.description,
+                           foreground: juryForeground)
         case .unknown:
             BlankView()
         }
+    }
+
+    private var juryForeground: Color {
+        state.settings.juryBackground == .white ? .black : .white
     }
 
     private func resolvedURL(for exhibit: Exhibit) -> URL? {
