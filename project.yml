@@ -23,6 +23,13 @@ targets:
         TARGETED_DEVICE_FAMILY: "2"
         INFOPLIST_FILE: IronGavel/Resources/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: ""
+        # --- Device signing ---
+        # Simulator builds ignore signing. For a real iPad install, set DEVELOPMENT_TEAM
+        # to your Apple Developer Team ID (10 chars, e.g. ABCDE12345) — found in Xcode ›
+        # Settings › Accounts, or developer.apple.com › Membership. Automatic signing then
+        # provisions the device. Use a PAID account for 1-year profiles (free = 7 days).
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""
   IronGavelTests:
     type: bundle.unit-test
     platform: iOS
