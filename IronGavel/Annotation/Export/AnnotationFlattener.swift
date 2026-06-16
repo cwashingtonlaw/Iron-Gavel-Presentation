@@ -35,6 +35,33 @@ struct AnnotationFlattener {
             }
         }
 
+        try writeAtomically(data, to: outputURL)
+    }
+
+    func flatten(
+        image: CGImage,
+        annotations: [Annotation],
+        outputURL: URL
+    ) throws {
+        let bounds = CGRect(x: 0, y: 0, width: image.width, height: image.height)
+        let renderer = UIGraphicsPDFRenderer(bounds: bounds)
+        let data = renderer.pdfData { ctx in
+            ctx.beginPage()
+            let cg = ctx.cgContext
+            cg.saveGState()
+            cg.translateBy(x: 0, y: bounds.height)
+            cg.scaleBy(x: 1, y: -1)
+            cg.draw(image, in: bounds)
+            cg.restoreGState()
+
+            for annotation in annotations {
+                draw(annotation, in: bounds, cg: cg)
+            }
+        }
+        try writeAtomically(data, to: outputURL)
+    }
+
+    private func writeAtomically(_ data: Data, to outputURL: URL) throws {
         let tmp = outputURL.deletingLastPathComponent()
             .appendingPathComponent(outputURL.lastPathComponent + ".tmp")
         try FileManager.default.createDirectory(at: outputURL.deletingLastPathComponent(),
