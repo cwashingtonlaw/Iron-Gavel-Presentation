@@ -29,7 +29,7 @@ targets:
         # Settings › Accounts, or developer.apple.com › Membership. Automatic signing then
         # provisions the device. Use a PAID account for 1-year profiles (free = 7 days).
         CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: ""
+        DEVELOPMENT_TEAM: "77TS8D8SYW"
   IronGavelTests:
     type: bundle.unit-test
     platform: iOS
