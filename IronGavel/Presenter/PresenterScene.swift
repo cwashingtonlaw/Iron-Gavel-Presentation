@@ -16,12 +16,16 @@ struct PresenterScene: View {
             VStack(spacing: 0) {
                 PresenterToolbar { showFolderPicker = true }
                 Divider()
-                if let banner = state.lastStatusBanner {
-                    bannerView(text: banner)
+                if state.currentCase == nil {
+                    EmptyCaseView { showFolderPicker = true }
+                } else {
+                    if let banner = state.lastStatusBanner {
+                        bannerView(text: banner)
+                    }
+                    ConfidenceMonitor()
+                    Divider()
+                    PreviewPane()
                 }
-                ConfidenceMonitor()
-                Divider()
-                PreviewPane()
             }
         }
         .sheet(isPresented: $showFolderPicker) {
