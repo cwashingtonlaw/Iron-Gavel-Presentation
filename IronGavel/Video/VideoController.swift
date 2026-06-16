@@ -10,6 +10,8 @@ final class VideoController {
     private(set) var currentTime: CMTime = .zero
     private(set) var duration: CMTime = .zero
     private(set) var clip = ClipRange()
+    private(set) var volume: Float = 1.0
+    private(set) var isMuted: Bool = false
 
     @ObservationIgnored let player = AVPlayer()
     /// Fired when the integer-second of `currentTime` changes. Wiring uses this
@@ -69,6 +71,17 @@ final class VideoController {
     }
 
     func clearClip() { clip = ClipRange() }
+
+    func setVolume(_ value: Float) {
+        let clamped = max(0, min(1, value))
+        volume = clamped
+        player.volume = clamped
+    }
+
+    func toggleMute() {
+        isMuted.toggle()
+        player.isMuted = isMuted
+    }
 
     func playClip() {
         guard clip.isValid, let start = clip.start else { return }

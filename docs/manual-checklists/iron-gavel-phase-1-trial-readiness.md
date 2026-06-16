@@ -39,4 +39,5 @@ Run this before any courtroom use.
 - [ ] Tap Play; confirm the frame markup hides during playback and the jury shows clean video.
 - [ ] Pause again at the same second; confirm the markup re-appears.
 - [ ] Tap Save Copy while paused; open `<CASE_ROOT>/Trial/Annotated/<id>-t<seconds>.pdf` in Files; confirm the frame plus markup is baked into the PDF.
+- [ ] During playback, drag the volume slider and tap Mute; confirm the jury audio output level changes and silences/restores accordingly.
 - [ ] Blank Screen during video; confirm the jury blacks out and restore resumes the same frame/position.

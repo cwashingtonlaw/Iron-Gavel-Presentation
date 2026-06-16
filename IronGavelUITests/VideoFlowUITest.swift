@@ -26,6 +26,14 @@ final class VideoFlowUITest: XCTestCase {
         playPause.tap()
         XCTAssertEqual(playPause.value as? String, "paused")
 
+        // Mute toggles the jury audio output.
+        let mute = app.buttons["video.mute"]
+        XCTAssertEqual(mute.value as? String, "unmuted")
+        mute.tap()
+        XCTAssertEqual(mute.value as? String, "muted")
+        mute.tap()
+        XCTAssertEqual(mute.value as? String, "unmuted")
+
         // Clip controls are addressable and don't crash the app.
         app.buttons["video.setin"].tap()
         app.buttons["video.setout"].tap()
