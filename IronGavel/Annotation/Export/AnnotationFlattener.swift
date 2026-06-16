@@ -20,21 +20,13 @@ struct AnnotationFlattener {
         guard let page = source.page(at: pageIndex) else { throw FlattenError.cannotResolvePage }
         let pageBounds = page.bounds(for: .mediaBox)
 
-        let renderer = UIGraphicsPDFRenderer(bounds: pageBounds)
-        let data = renderer.pdfData { ctx in
-            ctx.beginPage()
-            let cg = ctx.cgContext
+        let data = flattenedPDFData(bounds: pageBounds, annotations: annotations) { cg in
             cg.saveGState()
             cg.translateBy(x: 0, y: pageBounds.height)
             cg.scaleBy(x: 1, y: -1)
             page.draw(with: .mediaBox, to: cg)
             cg.restoreGState()
-
-            for annotation in annotations {
-                draw(annotation, in: pageBounds, cg: cg)
-            }
         }
-
         try writeAtomically(data, to: outputURL)
     }
 
@@ -44,21 +36,51 @@ struct AnnotationFlattener {
         outputURL: URL
     ) throws {
         let bounds = CGRect(x: 0, y: 0, width: image.width, height: image.height)
-        let renderer = UIGraphicsPDFRenderer(bounds: bounds)
-        let data = renderer.pdfData { ctx in
-            ctx.beginPage()
-            let cg = ctx.cgContext
+        let data = flattenedPDFData(bounds: bounds, annotations: annotations) { cg in
             cg.saveGState()
             cg.translateBy(x: 0, y: bounds.height)
             cg.scaleBy(x: 1, y: -1)
             cg.draw(image, in: bounds)
             cg.restoreGState()
+        }
+        try writeAtomically(data, to: outputURL)
+    }
 
+    /// Produces flattened PDF data. When a redaction is present, the base content and
+    /// ALL annotations are baked into a single raster image so that text/vector content
+    /// beneath a redaction is physically overwritten and cannot be recovered (text
+    /// extraction, copy, or deleting the box). Without redactions the vector content is
+    /// preserved (selectable text, smaller file).
+    private func flattenedPDFData(bounds: CGRect, annotations: [Annotation],
+                                  drawBase: (CGContext) -> Void) -> Data {
+        if annotations.contains(where: { $0.tool == .redact }) {
+            return rasterizedPDFData(bounds: bounds, annotations: annotations, drawBase: drawBase)
+        }
+        return UIGraphicsPDFRenderer(bounds: bounds).pdfData { ctx in
+            ctx.beginPage()
+            let cg = ctx.cgContext
+            drawBase(cg)
             for annotation in annotations {
                 draw(annotation, in: bounds, cg: cg)
             }
         }
-        try writeAtomically(data, to: outputURL)
+    }
+
+    private func rasterizedPDFData(bounds: CGRect, annotations: [Annotation],
+                                   drawBase: (CGContext) -> Void) -> Data {
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 2
+        let baked = UIGraphicsImageRenderer(size: bounds.size, format: format).image { rctx in
+            let cg = rctx.cgContext
+            drawBase(cg)
+            for annotation in annotations {
+                draw(annotation, in: bounds, cg: cg)
+            }
+        }
+        return UIGraphicsPDFRenderer(bounds: bounds).pdfData { ctx in
+            ctx.beginPage()
+            baked.draw(in: bounds)
+        }
     }
 
     private func writeAtomically(_ data: Data, to outputURL: URL) throws {
