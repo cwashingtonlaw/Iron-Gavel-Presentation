@@ -58,7 +58,7 @@
           },
           "media_type": {
             "type": "string",
-            "enum": ["pdf", "image", "video", "unknown"]
+            "enum": ["pdf", "image", "video", "audio", "unknown"]
           },
           "objection": {
             "type": "string",
