@@ -20,14 +20,16 @@ struct JuryView: View {
             BlankView()
         case let .exhibit(exhibit, page, _):
             if let fileURL = resolvedURL(for: exhibit) {
-                ZStack {
-                    mediaContent(exhibit: exhibit, fileURL: fileURL, page: page)
-                    if !(exhibit.mediaType == .video && state.videoController.isPlaying) {
-                        PageAnnotationLayerJury(
-                            exhibitId: exhibit.id,
-                            exhibitFileURL: fileURL,
-                            page: page
-                        )
+                ViewportContainer(viewport: state.juryViewport) {
+                    ZStack {
+                        mediaContent(exhibit: exhibit, fileURL: fileURL, page: page)
+                        if !(exhibit.mediaType == .video && state.videoController.isPlaying) {
+                            PageAnnotationLayerJury(
+                                exhibitId: exhibit.id,
+                                exhibitFileURL: fileURL,
+                                page: page
+                            )
+                        }
                     }
                 }
             } else {
