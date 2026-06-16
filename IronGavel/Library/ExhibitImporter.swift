@@ -24,15 +24,17 @@ struct ExhibitImporter {
             do { try FileManager.default.copyItem(at: src, to: dest) }
             catch { throw ImportError.copyFailed(src.lastPathComponent) }
 
+            let stem = (destName as NSString).deletingPathExtension
             let exhibit = Exhibit(
-                id: ExhibitIDAllocator.nextID(existing: exhibits, party: defaultParty),
+                id: uniqueID(from: stem, existing: exhibits),
                 party: defaultParty,
-                description: (destName as NSString).deletingPathExtension,
+                description: stem,
                 file: "Exhibits/\(destName)",
                 witness: nil, bates: nil,
                 status: .pending,
                 mediaType: MediaTypeDetector.detect(url: dest),
-                objection: nil, ruling: nil, notes: nil
+                objection: nil, ruling: nil, notes: nil,
+                exhibitNumber: nil   // imported documents are unmarked until assigned
             )
             exhibits.append(exhibit)
         }
@@ -44,6 +46,15 @@ struct ExhibitImporter {
                            exhibits: exhibits)
         try writer.write(updated, to: caseFolder)
         return updated
+    }
+
+    /// A stable internal key derived from the filename, made unique within the case.
+    private func uniqueID(from stem: String, existing: [Exhibit]) -> String {
+        let taken = Set(existing.map(\.id))
+        if !taken.contains(stem) { return stem }
+        var i = 2
+        while taken.contains("\(stem)-\(i)") { i += 1 }
+        return "\(stem)-\(i)"
     }
 
     private func uniqueName(for name: String, in dir: URL) -> String {

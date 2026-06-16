@@ -17,22 +17,24 @@ final class MediaTypeDetectorTests: XCTestCase {
     }
 }
 
-// MARK: - ExhibitIDAllocator
+// MARK: - ExhibitNumbering / displayNumber
 
-final class ExhibitIDAllocatorTests: XCTestCase {
-    private func ex(_ id: String, _ party: Party) -> Exhibit {
-        Exhibit(id: id, party: party, description: "x", file: "f", witness: nil, bates: nil,
-                status: .pending, mediaType: .pdf, objection: nil, ruling: nil, notes: nil)
+final class ExhibitNumberingTests: XCTestCase {
+    private func ex(id: String, number: String? = nil) -> Exhibit {
+        Exhibit(id: id, party: .defense, description: "x", file: "f", witness: nil, bates: nil,
+                status: .pending, mediaType: .pdf, objection: nil, ruling: nil, notes: nil,
+                exhibitNumber: number)
     }
-    func test_first_id_per_party() {
-        XCTAssertEqual(ExhibitIDAllocator.nextID(existing: [], party: .defense), "D-001")
-        XCTAssertEqual(ExhibitIDAllocator.nextID(existing: [], party: .state), "S-001")
+    func test_looks_like_number() {
+        XCTAssertTrue(ExhibitNumbering.looksLikeNumber("D-001"))
+        XCTAssertTrue(ExhibitNumbering.looksLikeNumber("S14"))
+        XCTAssertFalse(ExhibitNumbering.looksLikeNumber("photo"))
+        XCTAssertFalse(ExhibitNumbering.looksLikeNumber("call-recording"))
     }
-    func test_next_after_existing() {
-        let existing = [ex("D-001", .defense), ex("D-002", .defense), ex("S-005", .state)]
-        XCTAssertEqual(ExhibitIDAllocator.nextID(existing: existing, party: .defense), "D-003")
-        XCTAssertEqual(ExhibitIDAllocator.nextID(existing: existing, party: .state), "S-006")
-        XCTAssertEqual(ExhibitIDAllocator.nextID(existing: existing, party: .joint), "J-001")
+    func test_display_number_prefers_assigned_then_falls_back_to_numberlike_id() {
+        XCTAssertEqual(ex(id: "photo", number: "D-3").displayNumber, "D-3")    // assigned wins
+        XCTAssertEqual(ex(id: "D-001").displayNumber, "D-001")                  // external fallback
+        XCTAssertNil(ex(id: "photo").displayNumber)                            // unmarked import
     }
 }
 
@@ -104,11 +106,16 @@ final class ExhibitImporterTests: XCTestCase {
         let updated = try ExhibitImporter().importFiles([pdf, audio], into: folder)
 
         XCTAssertEqual(updated.exhibits.count, 2)
-        XCTAssertEqual(updated.exhibits[0].id, "D-001")
+        // Imported documents are UNMARKED: no auto-assigned exhibit number.
+        XCTAssertNil(updated.exhibits[0].exhibitNumber)
+        XCTAssertNil(updated.exhibits[0].displayNumber)
+        XCTAssertEqual(updated.exhibits[0].id, "photo")
+        XCTAssertEqual(updated.exhibits[0].description, "photo")
         XCTAssertEqual(updated.exhibits[0].mediaType, .pdf)
         XCTAssertEqual(updated.exhibits[0].file, "Exhibits/photo.pdf")
-        XCTAssertEqual(updated.exhibits[1].id, "D-002")
+        XCTAssertEqual(updated.exhibits[1].id, "call")
         XCTAssertEqual(updated.exhibits[1].mediaType, .audio)
+        XCTAssertNil(updated.exhibits[1].exhibitNumber)
         XCTAssertTrue(FileManager.default.fileExists(atPath: folder.appendingPathComponent("Exhibits/photo.pdf").path))
         XCTAssertEqual(try CaseLoader().load(folderURL: folder).exhibits.count, 2)
     }
@@ -121,6 +128,7 @@ final class ExhibitImporterTests: XCTestCase {
         let updated = try ExhibitImporter().importFiles([try srcFile("dup.pdf", in: root, "b")], into: folder)
         XCTAssertEqual(updated.exhibits.count, 2)
         XCTAssertEqual(updated.exhibits[1].file, "Exhibits/dup 2.pdf")
+        XCTAssertEqual(updated.exhibits[1].id, "dup 2")
     }
 }
 

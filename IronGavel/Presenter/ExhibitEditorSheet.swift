@@ -8,7 +8,7 @@ struct ExhibitEditorSheet: View {
     let onDelete: () -> Void
     let onCancel: () -> Void
 
-    @State private var id: String
+    @State private var number: String
     @State private var party: Party
     @State private var status: ExhibitStatus
     @State private var descriptionText: String
@@ -21,7 +21,7 @@ struct ExhibitEditorSheet: View {
         self.onSave = onSave
         self.onDelete = onDelete
         self.onCancel = onCancel
-        _id = State(initialValue: exhibit.id)
+        _number = State(initialValue: exhibit.exhibitNumber ?? "")
         _party = State(initialValue: exhibit.party)
         _status = State(initialValue: exhibit.status)
         _descriptionText = State(initialValue: exhibit.description)
@@ -33,7 +33,8 @@ struct ExhibitEditorSheet: View {
         NavigationStack {
             Form {
                 Section("Identification") {
-                    TextField("Exhibit ID", text: $id).accessibilityIdentifier("editor.id")
+                    TextField("Exhibit number (e.g. D-1)", text: $number)
+                        .accessibilityIdentifier("editor.number")
                     Picker("Party", selection: $party) {
                         ForEach(Party.allCases, id: \.self) { Text($0.rawValue).tag($0) }
                     }
@@ -64,10 +65,12 @@ struct ExhibitEditorSheet: View {
     }
 
     private func updated() -> Exhibit {
-        Exhibit(id: id, party: party, description: descriptionText, file: exhibit.file,
+        Exhibit(id: exhibit.id, party: party, description: descriptionText, file: exhibit.file,
                 witness: witness.isEmpty ? nil : witness,
                 bates: bates.isEmpty ? nil : bates,
                 status: status, mediaType: exhibit.mediaType,
-                objection: exhibit.objection, ruling: exhibit.ruling, notes: exhibit.notes)
+                objection: exhibit.objection, ruling: exhibit.ruling, notes: exhibit.notes,
+                exhibitNumber: number.trimmingCharacters(in: .whitespaces).isEmpty ? nil
+                    : number.trimmingCharacters(in: .whitespaces))
     }
 }

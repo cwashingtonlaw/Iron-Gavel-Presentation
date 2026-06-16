@@ -13,18 +13,30 @@ struct CaseLibraryView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("Cases on this iPad") {
+                Section {
                     if cases.isEmpty {
-                        Text("No cases yet. Tap + to create one.").foregroundStyle(.secondary)
+                        Text("No cases yet. Tap ＋ to create one.")
+                            .font(Theme.Typography.meta)
+                            .foregroundStyle(Theme.Palette.mutedText)
                     }
                     ForEach(cases, id: \.self) { name in
-                        Button(name) { onOpen(store.url(for: name)) }
-                            .accessibilityIdentifier("case.row.\(name)")
+                        Button { onOpen(store.url(for: name)) } label: {
+                            Label {
+                                Text(name).font(Theme.Typography.caseTitle).foregroundStyle(.primary)
+                            } icon: {
+                                Image(systemName: "folder.fill").foregroundStyle(Theme.Palette.accent)
+                            }
+                        }
+                        .accessibilityIdentifier("case.row.\(name)")
                     }
                     .onDelete { offsets in
                         for i in offsets { try? store.delete(name: cases[i]) }
                         reload()
                     }
+                } header: {
+                    Text("CASES ON THIS IPAD")
+                        .font(Theme.Typography.sectionLabel).tracking(1.0)
+                        .foregroundStyle(Theme.Palette.accentDeep)
                 }
                 Section {
                     Button { onOpenExternal() } label: {
@@ -34,6 +46,7 @@ struct CaseLibraryView: View {
                 }
             }
             .navigationTitle("Iron Gavel")
+            .tint(Theme.Palette.accent)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button { newName = ""; showNew = true } label: { Image(systemName: "plus") }

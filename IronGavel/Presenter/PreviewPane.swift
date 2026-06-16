@@ -109,21 +109,25 @@ struct PreviewPane: View {
     }
 
     private func header(for exhibit: Exhibit) -> some View {
-        HStack {
-            Text("\(exhibit.id) — \(exhibit.description)").font(.headline)
-            Spacer()
+        HStack(spacing: Theme.Spacing.m) {
+            ExhibitNumberChip(number: exhibit.displayNumber)
+            Text(exhibit.description)
+                .font(Theme.Typography.caseTitle)
+                .lineLimit(1)
+            StatusBadge(status: exhibit.status)
+            Spacer(minLength: Theme.Spacing.m)
             Button { showEditor = true } label: {
-                Label("Edit Exhibit", systemImage: "pencil").labelStyle(.iconOnly)
+                Image(systemName: "pencil")
             }
             .accessibilityIdentifier("exhibit.edit")
             Button { showDisposition = true } label: {
-                Label("Log Disposition", systemImage: "exclamationmark.bubble")
-                    .labelStyle(.iconOnly)
+                Image(systemName: "exclamationmark.bubble")
             }
             .accessibilityIdentifier("disposition.open")
-            StatusBadge(status: exhibit.status)
         }
-        .padding(.horizontal, 12)
+        .tint(Theme.Palette.accent)
+        .padding(.horizontal, Theme.Spacing.m)
+        .padding(.top, Theme.Spacing.xs)
     }
 
     private func updateExhibit(original: Exhibit, edited: Exhibit) {
