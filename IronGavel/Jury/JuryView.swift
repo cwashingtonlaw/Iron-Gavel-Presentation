@@ -5,10 +5,29 @@ struct JuryView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            backgroundColor.ignoresSafeArea()
             content
         }
+        .overlay(alignment: .bottom) { exhibitBanner }
         .accessibilityIdentifier("jury.view")
+    }
+
+    private var backgroundColor: Color {
+        state.settings.juryBackground == .white ? .white : .black
+    }
+
+    @ViewBuilder
+    private var exhibitBanner: some View {
+        if state.settings.juryShowExhibitBanner,
+           case let .exhibit(exhibit, _, _) = state.juryDisplay {
+            Text("\(exhibit.id) — \(exhibit.description)")
+                .font(.headline)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(.thinMaterial, in: Capsule())
+                .padding(.bottom, 20)
+                .accessibilityIdentifier("jury.banner")
+        }
     }
 
     @ViewBuilder

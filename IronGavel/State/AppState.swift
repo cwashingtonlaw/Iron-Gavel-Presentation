@@ -17,13 +17,18 @@ final class AppState {
     private(set) var juryViewport: JuryViewport = .full
     let annotationStore = AnnotationStore()
     let videoController = VideoController()
+    let settings: SettingsStore
 
     @ObservationIgnored private var saveTasks: [String: Task<Void, Never>] = [:]
     @ObservationIgnored private let writer = AnnotationWriter()
     @ObservationIgnored private let publishStateStore: PublishStateStore
 
-    init(publishStateStore: PublishStateStore = PublishStateStore()) {
+    init(publishStateStore: PublishStateStore = PublishStateStore(),
+         settings: SettingsStore? = nil) {
         self.publishStateStore = publishStateStore
+        let resolvedSettings = settings ?? SettingsStore()
+        self.settings = resolvedSettings
+        self.currentColor = resolvedSettings.defaultAnnotationColor
         annotationStore.onChange = { [weak self] exhibitId in
             self?.handleAnnotationChange(for: exhibitId)
         }
@@ -36,7 +41,8 @@ final class AppState {
 
         if let previousCase, case let .exhibit(published, page, _) = juryDisplay {
             let updated = kase.exhibits.first(where: { $0.id == published.id })
-            if let updated, updated.status != .admitted, published.status == .admitted {
+            if let updated, updated.status != .admitted, published.status == .admitted,
+               settings.autoBlankOnDowngrade {
                 juryDisplay = .blank
                 lastStatusBanner = "Exhibit \(published.id) status changed to \(updated.status.rawValue). Jury display blanked."
             }
