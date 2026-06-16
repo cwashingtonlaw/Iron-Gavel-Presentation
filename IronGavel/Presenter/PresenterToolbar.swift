@@ -4,14 +4,23 @@ struct PresenterToolbar: View {
     @Environment(AppState.self) private var state
     let openCaseAction: () -> Void
 
+    private let exporter = ExhibitListExporter()
+    private let audit = AuditLog()
+
     var body: some View {
         HStack(spacing: 16) {
             Button("Open Case", action: openCaseAction)
                 .accessibilityIdentifier("toolbar.openCase")
 
+            Button(action: exportList) {
+                Label("Export List", systemImage: "square.and.arrow.up")
+            }
+            .disabled(state.currentCase == nil)
+            .accessibilityIdentifier("toolbar.exportList")
+
             Spacer()
 
-            Button(action: { state.publishSelected() }) {
+            Button(action: publish) {
                 Label("Publish", systemImage: "tv")
             }
             .disabled(!canPublish)
@@ -36,8 +45,30 @@ struct PresenterToolbar: View {
         state.juryDisplay == .blank
     }
 
+    private func publish() {
+        state.publishSelected()
+        logAudit(kind: "publish", detail: state.selectedExhibit?.id ?? "")
+    }
+
     private func toggleBlank() {
-        if isBlanked { state.restore() } else { state.blank() }
+        if isBlanked {
+            state.restore()
+            logAudit(kind: "restore", detail: "")
+        } else {
+            state.blank()
+            logAudit(kind: "blank", detail: "")
+        }
+    }
+
+    private func exportList() {
+        guard let kase = state.currentCase, let folder = state.caseFolderURL else { return }
+        try? exporter.write(kase, to: folder)
+    }
+
+    private func logAudit(kind: String, detail: String) {
+        guard let folder = state.caseFolderURL else { return }
+        let time = ISO8601DateFormatter().string(from: Date())
+        try? audit.append(.init(time: time, kind: kind, detail: detail), to: folder)
     }
 
     private var externalIndicator: some View {

@@ -5,8 +5,11 @@ struct PreviewPane: View {
     @State private var page: Int = 0
     @State private var exportToast: String?
     @State private var zoomMode = false
+    @State private var showDisposition = false
 
     private let flattener = AnnotationFlattener()
+    private let dispositionLog = DispositionLog()
+    private let auditLog = AuditLog()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -62,6 +65,18 @@ struct PreviewPane: View {
             }
         }
         .padding(.vertical, 8)
+        .sheet(isPresented: $showDisposition) {
+            if let exhibit = state.selectedExhibit {
+                DispositionSheet(
+                    exhibitId: exhibit.id,
+                    onSave: { objection, ruling, note in
+                        showDisposition = false
+                        logDisposition(exhibit: exhibit, objection: objection, ruling: ruling, note: note)
+                    },
+                    onCancel: { showDisposition = false }
+                )
+            }
+        }
         .onChange(of: state.selectedExhibit?.id) { _, _ in
             page = 0
             loadVideoIfNeeded()
@@ -83,9 +98,25 @@ struct PreviewPane: View {
         HStack {
             Text("\(exhibit.id) — \(exhibit.description)").font(.headline)
             Spacer()
+            Button { showDisposition = true } label: {
+                Label("Log Disposition", systemImage: "exclamationmark.bubble")
+                    .labelStyle(.iconOnly)
+            }
+            .accessibilityIdentifier("disposition.open")
             StatusBadge(status: exhibit.status)
         }
         .padding(.horizontal, 12)
+    }
+
+    private func logDisposition(exhibit: Exhibit, objection: String, ruling: String, note: String) {
+        guard let folder = state.caseFolderURL else { return }
+        let time = ISO8601DateFormatter().string(from: Date())
+        try? dispositionLog.append(
+            .init(time: time, exhibitId: exhibit.id, objection: objection, ruling: ruling, note: note),
+            to: folder)
+        try? auditLog.append(
+            .init(time: time, kind: "disposition", detail: "\(exhibit.id): \(ruling)"),
+            to: folder)
     }
 
     @ViewBuilder
