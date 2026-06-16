@@ -19,6 +19,8 @@ struct PresenterScene: View {
                 if let banner = state.lastStatusBanner {
                     bannerView(text: banner)
                 }
+                ConfidenceMonitor()
+                Divider()
                 PreviewPane()
             }
         }
@@ -86,6 +88,8 @@ struct PresenterScene: View {
         }
         if stale { bookmarks.clear(); return }
         openFolder(url, persistBookmark: false)
+        // Relaunch restoration: re-publish whatever the jury was last showing.
+        state.restorePublishedState()
     }
 
     private func preloadAnnotations(folder: URL, exhibits: [Exhibit]) {
