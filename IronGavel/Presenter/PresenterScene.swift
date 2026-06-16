@@ -1,8 +1,10 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct PresenterScene: View {
     @Environment(AppState.self) private var state
     @State private var showFolderPicker = false
+    @State private var showImporter = false
     @State private var loadError: String?
     @State private var watcher: CaseWatcher?
 
@@ -14,10 +16,14 @@ struct PresenterScene: View {
             ExhibitSidebar()
         } detail: {
             VStack(spacing: 0) {
-                PresenterToolbar { showFolderPicker = true }
+                PresenterToolbar(openCaseAction: { showFolderPicker = true },
+                                 importAction: { showImporter = true })
                 Divider()
                 if state.currentCase == nil {
-                    EmptyCaseView { showFolderPicker = true }
+                    CaseLibraryView(
+                        onOpen: { url in openFolder(url, persistBookmark: true) },
+                        onOpenExternal: { showFolderPicker = true }
+                    )
                 } else {
                     if let banner = state.lastStatusBanner {
                         bannerView(text: banner)
@@ -34,6 +40,11 @@ struct PresenterScene: View {
                 openFolder(url, persistBookmark: true)
             }
         }
+        .fileImporter(isPresented: $showImporter,
+                      allowedContentTypes: [.pdf, .image, .audiovisualContent, .audio],
+                      allowsMultipleSelection: true) { result in
+            handleImport(result)
+        }
         .alert("Cannot load case", isPresented: errorBinding, presenting: loadError) { _ in
             Button("OK", role: .cancel) { loadError = nil }
         } message: { message in
@@ -44,6 +55,19 @@ struct PresenterScene: View {
 
     private var errorBinding: Binding<Bool> {
         Binding(get: { loadError != nil }, set: { if !$0 { loadError = nil } })
+    }
+
+    private func handleImport(_ result: Result<[URL], Error>) {
+        guard let folder = state.caseFolderURL, case let .success(urls) = result else { return }
+        var accessed: [URL] = []
+        for u in urls where u.startAccessingSecurityScopedResource() { accessed.append(u) }
+        defer { accessed.forEach { $0.stopAccessingSecurityScopedResource() } }
+        do {
+            let updated = try ExhibitImporter().importFiles(urls, into: folder)
+            state.apply(case: updated, folder: folder)
+        } catch {
+            loadError = "Import failed: \(error)"
+        }
     }
 
     private func bannerView(text: String) -> some View {

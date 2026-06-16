@@ -3,6 +3,7 @@ import SwiftUI
 struct PresenterToolbar: View {
     @Environment(AppState.self) private var state
     let openCaseAction: () -> Void
+    let importAction: () -> Void
 
     @State private var showSettings = false
     @State private var showChecklist = false
@@ -13,6 +14,12 @@ struct PresenterToolbar: View {
         HStack(spacing: 16) {
             Button("Open Case", action: openCaseAction)
                 .accessibilityIdentifier("toolbar.openCase")
+
+            Button(action: importAction) {
+                Label("Import", systemImage: "square.and.arrow.down.on.square")
+            }
+            .disabled(state.currentCase == nil)
+            .accessibilityIdentifier("toolbar.import")
 
             Button(action: exportList) {
                 Label("Export List", systemImage: "square.and.arrow.up")
