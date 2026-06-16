@@ -15,6 +15,7 @@ final class AppState {
     var currentTool: AnnotationTool?
     var currentColor: AnnotationColor = .yellow
     let annotationStore = AnnotationStore()
+    let videoController = VideoController()
 
     @ObservationIgnored private var saveTasks: [String: Task<Void, Never>] = [:]
     @ObservationIgnored private let writer = AnnotationWriter()

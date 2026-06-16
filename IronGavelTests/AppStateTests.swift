@@ -137,4 +137,10 @@ final class AppStateTests: XCTestCase {
         XCTAssertTrue(FileManager.default.fileExists(atPath: saved.path),
                       "expected debounced save at \(saved.path)")
     }
+
+    func test_appstate_exposes_video_controller() {
+        let state = AppState()
+        XCTAssertFalse(state.videoController.isPlaying)
+        XCTAssertNil(state.videoController.url)
+    }
 }
