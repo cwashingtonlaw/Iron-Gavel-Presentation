@@ -13,16 +13,21 @@ struct PreviewPane: View {
                 header(for: exhibit)
                 ZStack {
                     content(exhibit: exhibit, fileURL: fileURL)
-                    PageAnnotationLayer(
-                        exhibitId: exhibit.id,
-                        exhibitFileURL: fileURL,
-                        page: page
-                    )
+                    if !(exhibit.mediaType == .video && state.videoController.isPlaying) {
+                        PageAnnotationLayer(
+                            exhibitId: exhibit.id,
+                            exhibitFileURL: fileURL,
+                            page: page
+                        )
+                    }
                 }
                 .padding(.horizontal, 12)
                 .accessibilityIdentifier("preview.pane")
                 if exhibit.mediaType == .pdf {
                     pageControls()
+                }
+                if exhibit.mediaType == .video {
+                    VideoTransportControls()
                 }
                 AnnotationToolbar(
                     exhibitId: exhibit.id,
@@ -45,6 +50,11 @@ struct PreviewPane: View {
         .padding(.vertical, 8)
         .onChange(of: state.selectedExhibit?.id) { _, _ in
             page = 0
+            loadVideoIfNeeded()
+        }
+        .onAppear { loadVideoIfNeeded() }
+        .onChange(of: videoSecond) { _, sec in
+            if state.selectedExhibit?.mediaType == .video { page = sec }
         }
         .onChange(of: page) { _, newValue in
             if let exhibit = state.selectedExhibit,
@@ -71,8 +81,10 @@ struct PreviewPane: View {
             PDFPreview(fileURL: fileURL, pageIndex: $page)
         case .image:
             ImagePreview(fileURL: fileURL)
-        case .video, .unknown:
-            Text("Unsupported media type in Phase 1").foregroundStyle(.secondary)
+        case .video:
+            VideoPresenterView(player: state.videoController.player)
+        case .unknown:
+            Text("Unsupported media type").foregroundStyle(.secondary)
         }
     }
 
@@ -91,19 +103,41 @@ struct PreviewPane: View {
         return folder.appendingPathComponent(exhibit.file)
     }
 
+    private var videoSecond: Int {
+        let s = state.videoController.currentTime.seconds
+        return s.isFinite ? Int(s) : 0
+    }
+
+    private func loadVideoIfNeeded() {
+        guard let exhibit = state.selectedExhibit,
+              exhibit.mediaType == .video,
+              let url = resolvedURL(for: exhibit) else { return }
+        state.videoController.load(url: url)
+    }
+
     private func exportFlattened(exhibit: Exhibit, fileURL: URL) {
         guard let folder = state.caseFolderURL else { return }
         let outDir = folder.appendingPathComponent("Trial/Annotated")
-        let outURL = outDir.appendingPathComponent("\(exhibit.id)-p\(page).pdf")
-        let annotations = state.annotationStore.annotations(exhibitId: exhibit.id, page: page)
         do {
-            try flattener.flatten(
-                exhibitFileURL: fileURL,
-                pageIndex: page,
-                annotations: annotations,
-                outputURL: outURL
-            )
-            exportToast = "Saved to \(outURL.path)"
+            if exhibit.mediaType == .video {
+                let time = state.videoController.currentTime
+                let second = time.seconds.isFinite ? Int(time.seconds) : 0
+                let frame = try VideoFrameGrabber().image(at: time, url: fileURL)
+                let outURL = outDir.appendingPathComponent("\(exhibit.id)-t\(second).pdf")
+                let annotations = state.annotationStore.annotations(exhibitId: exhibit.id, page: second)
+                try flattener.flatten(image: frame, annotations: annotations, outputURL: outURL)
+                exportToast = "Saved to \(outURL.path)"
+            } else {
+                let outURL = outDir.appendingPathComponent("\(exhibit.id)-p\(page).pdf")
+                let annotations = state.annotationStore.annotations(exhibitId: exhibit.id, page: page)
+                try flattener.flatten(
+                    exhibitFileURL: fileURL,
+                    pageIndex: page,
+                    annotations: annotations,
+                    outputURL: outURL
+                )
+                exportToast = "Saved to \(outURL.path)"
+            }
         } catch {
             exportToast = "Could not save annotated copy: \(error)"
         }

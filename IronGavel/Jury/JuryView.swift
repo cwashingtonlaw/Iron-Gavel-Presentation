@@ -22,11 +22,13 @@ struct JuryView: View {
             if let fileURL = resolvedURL(for: exhibit) {
                 ZStack {
                     mediaContent(exhibit: exhibit, fileURL: fileURL, page: page)
-                    PageAnnotationLayerJury(
-                        exhibitId: exhibit.id,
-                        exhibitFileURL: fileURL,
-                        page: page
-                    )
+                    if !(exhibit.mediaType == .video && state.videoController.isPlaying) {
+                        PageAnnotationLayerJury(
+                            exhibitId: exhibit.id,
+                            exhibitFileURL: fileURL,
+                            page: page
+                        )
+                    }
                 }
             } else {
                 BlankView()
@@ -41,7 +43,9 @@ struct JuryView: View {
             PDFJuryView(fileURL: fileURL, pageIndex: page)
         case .image:
             ImageJuryView(fileURL: fileURL)
-        case .video, .unknown:
+        case .video:
+            VideoJuryView(player: state.videoController.player)
+        case .unknown:
             BlankView()
         }
     }

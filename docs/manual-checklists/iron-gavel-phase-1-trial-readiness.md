@@ -27,3 +27,16 @@ Run this before any courtroom use.
 - [ ] Tap Save Copy; open the file at `<CASE_ROOT>/Trial/Annotated/<id>-p<n>.pdf` in Files; confirm visual fidelity (highlights/redactions/callouts/freehand all baked in).
 - [ ] Quit the app; re-open the case; confirm annotations re-load identically.
 - [ ] Open the same case on a second iPad via iCloud; edit an annotation on one device; confirm the change appears on the other within ~30 s (last-write-wins).
+
+## Phase 3 — Video
+
+- [ ] Open a case containing a `video` exhibit; select it; confirm the presenter shows the video with transport controls.
+- [ ] Tap Play; confirm playback on the presenter and a frame-synced mirror on the jury display.
+- [ ] Scrub the timeline; confirm the jury display follows.
+- [ ] Tap Set In at one point, Set Out at a later point, then Play Clip; confirm only that segment plays and stops at the out point. Tap Play Clip again; confirm it replays the segment.
+- [ ] Tap Clear; confirm the clip markers reset and full playback resumes.
+- [ ] Pause on a frame; pick Highlight/Redact/Freehand and mark the frame; confirm the markup appears on both presenter and jury display.
+- [ ] Tap Play; confirm the frame markup hides during playback and the jury shows clean video.
+- [ ] Pause again at the same second; confirm the markup re-appears.
+- [ ] Tap Save Copy while paused; open `<CASE_ROOT>/Trial/Annotated/<id>-t<seconds>.pdf` in Files; confirm the frame plus markup is baked into the PDF.
+- [ ] Blank Screen during video; confirm the jury blacks out and restore resumes the same frame/position.
