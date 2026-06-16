@@ -65,7 +65,11 @@
             "description": "Free text of the objection logged, if any. Informational; not used for publish gating."
           },
           "ruling": { "type": "string" },
-          "notes": { "type": "string" }
+          "notes": { "type": "string" },
+          "exhibit_number": {
+            "type": "string",
+            "description": "Human-assigned exhibit number / sticker (e.g. D-1). Absent for unmarked imported documents."
+          }
         }
       }
     }
