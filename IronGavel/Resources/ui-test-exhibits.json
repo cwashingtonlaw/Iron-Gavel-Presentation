@@ -33,6 +33,19 @@
       "objection": "",
       "ruling": "",
       "notes": ""
+    },
+    {
+      "id": "D-009",
+      "party": "Joint",
+      "description": "Dashcam clip",
+      "file": "Exhibits_Admitted/d009-clip.mov",
+      "status": "admitted",
+      "media_type": "video",
+      "witness": "Off. Smith",
+      "bates": "DEF0009",
+      "objection": "",
+      "ruling": "Overruled",
+      "notes": ""
     }
   ]
 }
