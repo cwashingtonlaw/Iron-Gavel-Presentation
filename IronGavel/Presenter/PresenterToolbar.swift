@@ -4,6 +4,7 @@ struct PresenterToolbar: View {
     @Environment(AppState.self) private var state
     let openCaseAction: () -> Void
 
+    @State private var showSettings = false
     private let exporter = ExhibitListExporter()
     private let audit = AuditLog()
 
@@ -17,6 +18,11 @@ struct PresenterToolbar: View {
             }
             .disabled(state.currentCase == nil)
             .accessibilityIdentifier("toolbar.exportList")
+
+            Button { showSettings = true } label: {
+                Label("Settings", systemImage: "gearshape")
+            }
+            .accessibilityIdentifier("toolbar.settings")
 
             Spacer()
 
@@ -35,6 +41,9 @@ struct PresenterToolbar: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
+        .sheet(isPresented: $showSettings) {
+            SettingsView(settings: state.settings) { showSettings = false }
+        }
     }
 
     private var canPublish: Bool {
