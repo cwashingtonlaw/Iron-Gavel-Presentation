@@ -5,6 +5,7 @@ struct PresenterToolbar: View {
     let openCaseAction: () -> Void
 
     @State private var showSettings = false
+    @State private var showChecklist = false
     private let exporter = ExhibitListExporter()
     private let audit = AuditLog()
 
@@ -18,6 +19,11 @@ struct PresenterToolbar: View {
             }
             .disabled(state.currentCase == nil)
             .accessibilityIdentifier("toolbar.exportList")
+
+            Button { showChecklist = true } label: {
+                Label("Checklist", systemImage: "checklist")
+            }
+            .accessibilityIdentifier("toolbar.checklist")
 
             Button { showSettings = true } label: {
                 Label("Settings", systemImage: "gearshape")
@@ -43,6 +49,9 @@ struct PresenterToolbar: View {
         .padding(.vertical, 6)
         .sheet(isPresented: $showSettings) {
             SettingsView(settings: state.settings) { showSettings = false }
+        }
+        .sheet(isPresented: $showChecklist) {
+            ChecklistView { showChecklist = false }
         }
     }
 

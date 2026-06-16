@@ -8,19 +8,9 @@ struct StatusBadge: View {
             .font(.caption2.bold())
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
-            .background(background)
+            .background(Theme.statusColor(status))
             .foregroundStyle(.white)
             .clipShape(Capsule())
             .accessibilityIdentifier("status.badge.\(status.rawValue)")
-    }
-
-    private var background: Color {
-        switch status {
-        case .pending:  return .gray
-        case .offered:  return .blue
-        case .objected: return .orange
-        case .admitted: return .green
-        case .excluded: return .red
-        }
     }
 }
