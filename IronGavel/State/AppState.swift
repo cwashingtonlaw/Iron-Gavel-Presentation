@@ -14,6 +14,7 @@ final class AppState {
 
     var currentTool: AnnotationTool?
     var currentColor: AnnotationColor = .yellow
+    private(set) var juryViewport: JuryViewport = .full
     let annotationStore = AnnotationStore()
     let videoController = VideoController()
 
@@ -54,6 +55,7 @@ final class AppState {
         juryDisplay = .exhibit(exhibit, page: 0, annotationsVersion: v)
         lastPublished = (exhibit, 0)
         lastStatusBanner = nil
+        juryViewport = .full
         persistPublishState()
     }
 
@@ -62,8 +64,18 @@ final class AppState {
             let v = annotationStore.pageVersion(exhibitId: exhibit.id, page: page)
             juryDisplay = .exhibit(exhibit, page: page, annotationsVersion: v)
             lastPublished = (exhibit, page)
+            juryViewport = .full
             persistPublishState()
         }
+    }
+
+    /// Zoom the jury (and presenter) to a normalized region of the current exhibit.
+    func setJuryViewport(_ region: NormalizedRect) {
+        juryViewport = JuryViewport(region: region.clamped())
+    }
+
+    func resetJuryViewport() {
+        juryViewport = .full
     }
 
     func blank() {

@@ -4,6 +4,7 @@ struct PreviewPane: View {
     @Environment(AppState.self) private var state
     @State private var page: Int = 0
     @State private var exportToast: String?
+    @State private var zoomMode = false
 
     private let flattener = AnnotationFlattener()
 
@@ -11,18 +12,31 @@ struct PreviewPane: View {
         VStack(spacing: 0) {
             if let exhibit = state.selectedExhibit, let fileURL = resolvedURL(for: exhibit) {
                 header(for: exhibit)
-                ZStack {
-                    content(exhibit: exhibit, fileURL: fileURL)
-                    if !(exhibit.mediaType == .video && state.videoController.isPlaying) {
-                        PageAnnotationLayer(
-                            exhibitId: exhibit.id,
-                            exhibitFileURL: fileURL,
-                            page: page
-                        )
+                ViewportContainer(viewport: state.juryViewport) {
+                    ZStack {
+                        content(exhibit: exhibit, fileURL: fileURL)
+                        if !(exhibit.mediaType == .video && state.videoController.isPlaying) {
+                            PageAnnotationLayer(
+                                exhibitId: exhibit.id,
+                                exhibitFileURL: fileURL,
+                                page: page
+                            )
+                        }
+                    }
+                }
+                .overlay {
+                    if zoomMode && state.juryViewport.isFull {
+                        ZoomSelectionView { rect in
+                            state.setJuryViewport(rect)
+                            zoomMode = false
+                        }
                     }
                 }
                 .padding(.horizontal, 12)
                 .accessibilityIdentifier("preview.pane")
+                if exhibit.mediaType != .video {
+                    zoomControls()
+                }
                 if exhibit.mediaType == .pdf {
                     pageControls()
                 }
@@ -86,6 +100,25 @@ struct PreviewPane: View {
         case .unknown:
             Text("Unsupported media type").foregroundStyle(.secondary)
         }
+    }
+
+    @ViewBuilder
+    private func zoomControls() -> some View {
+        HStack(spacing: 12) {
+            if state.juryViewport.isFull {
+                Button(zoomMode ? "Cancel Zoom" : "Zoom to Region") { zoomMode.toggle() }
+                    .accessibilityIdentifier("zoom.toggle")
+            } else {
+                Label("Zoomed", systemImage: "plus.magnifyingglass")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Button("Reset Zoom") { state.resetJuryViewport() }
+                    .accessibilityIdentifier("zoom.reset")
+            }
+        }
+        .buttonStyle(.bordered)
+        .font(.caption)
+        .padding(.vertical, 2)
     }
 
     private func pageControls() -> some View {
