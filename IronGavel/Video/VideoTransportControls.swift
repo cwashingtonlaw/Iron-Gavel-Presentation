@@ -17,6 +17,24 @@ struct VideoTransportControls: View {
                 Text(timeLabel)
                     .font(.caption.monospacedDigit())
                     .accessibilityIdentifier("video.timelabel")
+
+                Divider().frame(height: 18)
+
+                Button(action: { controller.toggleMute() }) {
+                    Image(systemName: controller.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                }
+                .accessibilityIdentifier("video.mute")
+                .accessibilityValue(controller.isMuted ? "muted" : "unmuted")
+
+                Slider(
+                    value: Binding(
+                        get: { Double(controller.volume) },
+                        set: { controller.setVolume(Float($0)) }
+                    ),
+                    in: 0...1
+                )
+                .frame(maxWidth: 140)
+                .accessibilityIdentifier("video.volume")
             }
             scrubber
             HStack(spacing: 12) {

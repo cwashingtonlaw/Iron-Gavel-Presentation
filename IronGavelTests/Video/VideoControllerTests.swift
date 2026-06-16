@@ -68,6 +68,23 @@ final class VideoControllerTests: XCTestCase {
         XCTAssertEqual(c.currentTime, .zero)
     }
 
+    func test_set_volume_clamps_to_unit_range() {
+        let c = VideoController()
+        c.setVolume(0.5)
+        XCTAssertEqual(c.volume, 0.5, accuracy: 0.0001)
+        c.setVolume(-1)
+        XCTAssertEqual(c.volume, 0)
+        c.setVolume(2)
+        XCTAssertEqual(c.volume, 1)
+    }
+
+    func test_toggle_mute_flips_state() {
+        let c = VideoController()
+        XCTAssertFalse(c.isMuted)
+        c.toggleMute(); XCTAssertTrue(c.isMuted)
+        c.toggleMute(); XCTAssertFalse(c.isMuted)
+    }
+
     func test_on_frame_change_fires_on_second_boundary_only() {
         let c = VideoController()
         var seconds: [Int] = []
