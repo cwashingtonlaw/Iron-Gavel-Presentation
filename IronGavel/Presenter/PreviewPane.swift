@@ -6,10 +6,12 @@ struct PreviewPane: View {
     @State private var exportToast: String?
     @State private var zoomMode = false
     @State private var showDisposition = false
+    @State private var showEditor = false
 
     private let flattener = AnnotationFlattener()
     private let dispositionLog = DispositionLog()
     private let auditLog = AuditLog()
+    private let manifestWriter = CaseManifestWriter()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -67,6 +69,16 @@ struct PreviewPane: View {
             }
         }
         .padding(.vertical, 8)
+        .sheet(isPresented: $showEditor) {
+            if let exhibit = state.selectedExhibit {
+                ExhibitEditorSheet(
+                    exhibit: exhibit,
+                    onSave: { edited in showEditor = false; updateExhibit(original: exhibit, edited: edited) },
+                    onDelete: { showEditor = false; deleteExhibit(exhibit) },
+                    onCancel: { showEditor = false }
+                )
+            }
+        }
         .sheet(isPresented: $showDisposition) {
             if let exhibit = state.selectedExhibit {
                 DispositionSheet(
@@ -100,6 +112,10 @@ struct PreviewPane: View {
         HStack {
             Text("\(exhibit.id) — \(exhibit.description)").font(.headline)
             Spacer()
+            Button { showEditor = true } label: {
+                Label("Edit Exhibit", systemImage: "pencil").labelStyle(.iconOnly)
+            }
+            .accessibilityIdentifier("exhibit.edit")
             Button { showDisposition = true } label: {
                 Label("Log Disposition", systemImage: "exclamationmark.bubble")
                     .labelStyle(.iconOnly)
@@ -108,6 +124,26 @@ struct PreviewPane: View {
             StatusBadge(status: exhibit.status)
         }
         .padding(.horizontal, 12)
+    }
+
+    private func updateExhibit(original: Exhibit, edited: Exhibit) {
+        guard let folder = state.caseFolderURL, let kase = state.currentCase else { return }
+        let exhibits = kase.exhibits.map { $0.file == original.file ? edited : $0 }
+        persist(kase: kase, exhibits: exhibits, folder: folder, select: edited)
+    }
+
+    private func deleteExhibit(_ exhibit: Exhibit) {
+        guard let folder = state.caseFolderURL, let kase = state.currentCase else { return }
+        let exhibits = kase.exhibits.filter { $0.file != exhibit.file }
+        persist(kase: kase, exhibits: exhibits, folder: folder, select: nil)
+    }
+
+    private func persist(kase: Case, exhibits: [Exhibit], folder: URL, select: Exhibit?) {
+        let updated = Case(contractVersion: kase.contractVersion, case: kase.`case`,
+                           generated: kase.generated, pathBase: kase.pathBase, exhibits: exhibits)
+        try? manifestWriter.write(updated, to: folder)
+        state.apply(case: updated, folder: folder)
+        state.selectedExhibit = select
     }
 
     private func logDisposition(exhibit: Exhibit, objection: String, ruling: String, note: String) {
