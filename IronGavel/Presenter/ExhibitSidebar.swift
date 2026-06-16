@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ExhibitSidebar: View {
     @Environment(AppState.self) private var state
+    @State private var searchText = ""
 
     var body: some View {
         @Bindable var state = state
@@ -28,6 +29,7 @@ struct ExhibitSidebar: View {
             }
         }
         .listStyle(.sidebar)
+        .searchable(text: $searchText, placement: .sidebar, prompt: "Search id, witness, Bates…")
         .accessibilityIdentifier("exhibit.sidebar")
     }
 
@@ -49,6 +51,8 @@ struct ExhibitSidebar: View {
     }
 
     private func exhibits(for party: Party) -> [Exhibit] {
-        state.currentCase?.exhibits.filter { $0.party == party } ?? []
+        (state.currentCase?.exhibits ?? []).filter {
+            $0.party == party && ExhibitFilter.matches($0, query: searchText)
+        }
     }
 }
