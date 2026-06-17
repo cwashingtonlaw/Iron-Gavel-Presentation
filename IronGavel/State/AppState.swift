@@ -12,6 +12,9 @@ final class AppState {
     private(set) var lastPublished: (exhibit: Exhibit, page: Int)?
     var externalConnected: Bool = false
     var lastStatusBanner: String?
+    /// Presenter-only: a page the doc-search wants the preview to jump to after selecting
+    /// an exhibit. NOT mirrored to the jury. PreviewPane consumes and clears it.
+    var requestedPreviewPage: Int?
 
     var currentTool: AnnotationTool?
     var currentColor: AnnotationColor = .yellow

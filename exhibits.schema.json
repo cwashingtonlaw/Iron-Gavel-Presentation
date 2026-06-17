@@ -69,6 +69,14 @@
           "exhibit_number": {
             "type": "string",
             "description": "Human-assigned exhibit number / sticker (e.g. D-1). Absent for unmarked imported documents."
+          },
+          "is_key": {
+            "type": "boolean",
+            "description": "Hot Doc / Key flag — starred for one-tap recall mid-testimony. App-written; absent in legacy manifests (treated as false)."
+          },
+          "folder": {
+            "type": "string",
+            "description": "Folder / group name within the case (by witness or topic). App-written; absent = Unfiled."
           }
         }
       }

@@ -14,6 +14,7 @@ struct ExhibitEditorSheet: View {
     @State private var descriptionText: String
     @State private var witness: String
     @State private var bates: String
+    @State private var folder: String
     @State private var notes: String
 
     init(exhibit: Exhibit, onSave: @escaping (Exhibit) -> Void,
@@ -28,6 +29,7 @@ struct ExhibitEditorSheet: View {
         _descriptionText = State(initialValue: exhibit.description)
         _witness = State(initialValue: exhibit.witness ?? "")
         _bates = State(initialValue: exhibit.bates ?? "")
+        _folder = State(initialValue: exhibit.folder ?? "")
         _notes = State(initialValue: exhibit.notes ?? "")
     }
 
@@ -49,6 +51,8 @@ struct ExhibitEditorSheet: View {
                     TextField("Description", text: $descriptionText)
                     TextField("Witness", text: $witness)
                     TextField("Bates", text: $bates)
+                    TextField("Folder (witness or topic)", text: $folder)
+                        .accessibilityIdentifier("editor.folder")
                 }
                 Section {
                     TextField("Presenter notes (only you see these)", text: $notes, axis: .vertical)
@@ -76,13 +80,16 @@ struct ExhibitEditorSheet: View {
     }
 
     private func updated() -> Exhibit {
-        Exhibit(id: exhibit.id, party: party, description: descriptionText, file: exhibit.file,
+        let trimmedFolder = folder.trimmingCharacters(in: .whitespaces)
+        return Exhibit(id: exhibit.id, party: party, description: descriptionText, file: exhibit.file,
                 witness: witness.isEmpty ? nil : witness,
                 bates: bates.isEmpty ? nil : bates,
                 status: status, mediaType: exhibit.mediaType,
                 objection: exhibit.objection, ruling: exhibit.ruling,
                 notes: notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : notes,
                 exhibitNumber: number.trimmingCharacters(in: .whitespaces).isEmpty ? nil
-                    : number.trimmingCharacters(in: .whitespaces))
+                    : number.trimmingCharacters(in: .whitespaces),
+                isKey: exhibit.isKey,
+                folder: trimmedFolder.isEmpty ? nil : trimmedFolder)
     }
 }

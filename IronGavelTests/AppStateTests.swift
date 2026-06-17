@@ -143,4 +143,12 @@ final class AppStateTests: XCTestCase {
         XCTAssertFalse(state.videoController.isPlaying)
         XCTAssertNil(state.videoController.url)
     }
+
+    func test_requestedPreviewPage_is_settable_and_independent_of_juryDisplay() {
+        let state = AppState()
+        XCTAssertNil(state.requestedPreviewPage)
+        state.requestedPreviewPage = 3
+        XCTAssertEqual(state.requestedPreviewPage, 3)
+        XCTAssertEqual(state.juryDisplay, .empty)
+    }
 }
