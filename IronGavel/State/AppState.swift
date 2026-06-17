@@ -15,6 +15,14 @@ final class AppState {
     /// Presenter-only: a page the doc-search wants the preview to jump to after selecting
     /// an exhibit. NOT mirrored to the jury. PreviewPane consumes and clears it.
     var requestedPreviewPage: Int?
+    /// Number of connected UIScreens (1 = just the iPad). Driven by ScreenMonitor.
+    var screenCount: Int = 1
+
+    static let whiteboardExhibitId = "__whiteboard__"
+
+    /// A second physical/AirPlay screen exists but our external jury scene did NOT
+    /// connect → the OS is mirroring the presenter UI (private notes) to the room.
+    var airPlayMirroringSuspected: Bool { screenCount > 1 && !externalConnected }
 
     var currentTool: AnnotationTool?
     var currentColor: AnnotationColor = .yellow
@@ -118,6 +126,20 @@ final class AppState {
         comparePage = 0
     }
 
+    // MARK: Whiteboard
+
+    func showWhiteboard() {
+        let v = annotationStore.pageVersion(exhibitId: Self.whiteboardExhibitId, page: 0)
+        juryDisplay = .whiteboard(annotationsVersion: v)
+        lastStatusBanner = nil
+        juryViewport = .full
+        persistPublishState()
+    }
+
+    func clearWhiteboard() {
+        annotationStore.clear(exhibitId: Self.whiteboardExhibitId, page: 0)
+    }
+
     func blank() {
         juryDisplay = .blank
         persistPublishState()
@@ -152,7 +174,7 @@ final class AppState {
             if let last = lastPublished {
                 publishStateStore.save(.init(exhibitId: last.exhibit.id, page: last.page, blanked: true))
             }
-        case .empty:
+        case .empty, .whiteboard:
             publishStateStore.clear()
         }
     }
@@ -165,6 +187,9 @@ final class AppState {
         if case let .exhibit(published, page, _) = juryDisplay, published.id == exhibitId {
             let v = annotationStore.pageVersion(exhibitId: exhibitId, page: page)
             juryDisplay = .exhibit(published, page: page, annotationsVersion: v)
+        } else if case .whiteboard = juryDisplay, exhibitId == Self.whiteboardExhibitId {
+            let v = annotationStore.pageVersion(exhibitId: exhibitId, page: 0)
+            juryDisplay = .whiteboard(annotationsVersion: v)
         }
         scheduleSave(exhibitId: exhibitId)
     }

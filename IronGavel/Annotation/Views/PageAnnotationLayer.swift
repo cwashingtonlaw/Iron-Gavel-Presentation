@@ -40,7 +40,23 @@ struct PageAnnotationLayer: View {
                     .accessibilityIdentifier("annotation.redact.\(annotation.id)")
             }
         case .callout:
-            CalloutBubble(annotation: annotation, exhibitFileURL: exhibitFileURL, pageIndex: page)
+            ZStack(alignment: .topLeading) {
+                CalloutBubble(annotation: annotation, exhibitFileURL: exhibitFileURL, pageIndex: page)
+                if state.currentTool == nil, let b = annotation.bounds {
+                    Button {
+                        state.annotationStore.remove(id: annotation.id, exhibitId: exhibitId, page: page)
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title3)
+                            .symbolRenderingMode(.palette)
+                            .foregroundStyle(.white, .red)
+                    }
+                    .accessibilityLabel("Delete callout")
+                    .accessibilityIdentifier("annotation.callout.delete.\(annotation.id)")
+                    .position(x: (b.x + b.w) * size.width, y: b.y * size.height)
+                }
+            }
+            .frame(width: size.width, height: size.height)
         case .freehand:
             FreehandReadOnly(annotation: annotation, color: annotation.color.uiColor)
                 .allowsHitTesting(false)

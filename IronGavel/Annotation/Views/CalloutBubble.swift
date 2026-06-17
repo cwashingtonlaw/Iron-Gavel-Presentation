@@ -18,6 +18,7 @@ struct CalloutBubble: View {
                                 .strokeBorder(annotation.color.uiColor, lineWidth: 3)
                         )
                 }
+                .shadow(color: .black.opacity(0.35), radius: 4, x: 0, y: 2)
                 .frame(width: frame.width, height: frame.height)
                 .position(x: frame.midX, y: frame.midY)
                 .accessibilityIdentifier("annotation.callout.\(annotation.id)")

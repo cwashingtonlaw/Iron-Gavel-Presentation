@@ -58,6 +58,8 @@ struct JuryView: View {
             } else {
                 BlankView()
             }
+        case .whiteboard:
+            WhiteboardCanvas(isPresenter: false)
         }
     }
 
