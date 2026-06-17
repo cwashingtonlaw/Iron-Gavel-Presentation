@@ -29,6 +29,8 @@ final class AppState {
     private(set) var juryViewport: JuryViewport = .full
     /// Normalized (0...1) laser-pointer position, mirrored to the jury. nil = hidden.
     private(set) var laserPoint: CGPoint?
+    /// Normalized region to spotlight (rest of the exhibit dimmed), mirrored to the jury. nil = off.
+    private(set) var spotlight: NormalizedRect?
     /// Second exhibit shown alongside the published one in side-by-side compare. nil = off.
     private(set) var compareExhibit: Exhibit?
     private(set) var comparePage: Int = 0
@@ -79,6 +81,7 @@ final class AppState {
         lastPublished = (exhibit, 0)
         lastStatusBanner = nil
         juryViewport = .full
+        spotlight = nil
         persistPublishState()
     }
 
@@ -88,6 +91,7 @@ final class AppState {
             juryDisplay = .exhibit(exhibit, page: page, annotationsVersion: v)
             lastPublished = (exhibit, page)
             juryViewport = .full
+            spotlight = nil
             persistPublishState()
         }
     }
@@ -105,6 +109,11 @@ final class AppState {
 
     func setLaser(_ point: CGPoint) { laserPoint = point }
     func clearLaser() { laserPoint = nil }
+
+    // MARK: Spotlight
+
+    func setSpotlight(_ region: NormalizedRect) { spotlight = region.clamped() }
+    func clearSpotlight() { spotlight = nil }
 
     // MARK: Side-by-side compare
 

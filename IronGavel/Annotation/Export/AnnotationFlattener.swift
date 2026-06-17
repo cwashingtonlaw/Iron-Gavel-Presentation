@@ -4,6 +4,10 @@ import PencilKit
 import UIKit
 
 struct AnnotationFlattener {
+    /// Opacity used when baking highlight rectangles. Defaults to the historical 0.4 so
+    /// existing call sites and tests are unaffected; the presenter passes the user setting.
+    var highlightOpacity: Double = 0.4
+
     enum FlattenError: Error {
         case cannotOpenSource
         case cannotResolvePage
@@ -103,7 +107,7 @@ struct AnnotationFlattener {
         case .highlight:
             if let b = annotation.bounds {
                 let rect = pageRect(from: b, pageBounds: pageBounds)
-                cg.setFillColor(uiColor(annotation.color).withAlphaComponent(0.4).cgColor)
+                cg.setFillColor(uiColor(annotation.color).withAlphaComponent(CGFloat(highlightOpacity)).cgColor)
                 cg.fill(rect)
             }
         case .redact:

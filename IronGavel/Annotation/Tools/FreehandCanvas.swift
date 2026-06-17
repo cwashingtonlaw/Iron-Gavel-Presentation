@@ -5,6 +5,7 @@ struct FreehandCanvas: UIViewRepresentable {
     @Binding var drawingData: Data
     let inkColor: UIColor
     let isPresenter: Bool
+    var lineWidth: CGFloat = 4
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
@@ -14,7 +15,7 @@ struct FreehandCanvas: UIViewRepresentable {
         canvas.isOpaque = false
         canvas.drawingPolicy = .anyInput
         canvas.delegate = context.coordinator
-        canvas.tool = PKInkingTool(.pen, color: inkColor, width: 4)
+        canvas.tool = PKInkingTool(.pen, color: inkColor, width: lineWidth)
         canvas.isUserInteractionEnabled = isPresenter
         if let drawing = try? PKDrawing(data: drawingData) {
             canvas.drawing = drawing
@@ -24,7 +25,7 @@ struct FreehandCanvas: UIViewRepresentable {
 
     func updateUIView(_ uiView: PKCanvasView, context: Context) {
         uiView.isUserInteractionEnabled = isPresenter
-        uiView.tool = PKInkingTool(.pen, color: inkColor, width: 4)
+        uiView.tool = PKInkingTool(.pen, color: inkColor, width: lineWidth)
         if let drawing = try? PKDrawing(data: drawingData), drawing != uiView.drawing {
             uiView.drawing = drawing
         }

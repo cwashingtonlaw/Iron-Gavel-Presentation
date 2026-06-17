@@ -13,8 +13,8 @@ private func orgTempDir() throws -> URL {
 
 private func makeExhibit(id: String, party: Party = .defense, status: ExhibitStatus = .admitted,
                          mediaType: MediaType = .pdf, file: String = "Exhibits/x.pdf",
-                         isKey: Bool = false, folder: String? = nil) -> Exhibit {
-    Exhibit(id: id, party: party, description: "desc-\(id)", file: file, witness: nil, bates: nil,
+                         isKey: Bool = false, folder: String? = nil, witness: String? = nil) -> Exhibit {
+    Exhibit(id: id, party: party, description: "desc-\(id)", file: file, witness: witness, bates: nil,
             status: status, mediaType: mediaType, objection: nil, ruling: nil, notes: nil,
             exhibitNumber: nil, isKey: isKey, folder: folder)
 }
@@ -109,6 +109,21 @@ final class ExhibitGroupingTests: XCTestCase {
     func test_folder_mode_all_unfiled() {
         let sections = ExhibitGrouping.sections(for: [makeExhibit(id: "A")], mode: .folder)
         XCTAssertEqual(sections.map(\.title), ["Unfiled"])
+    }
+
+    func test_witness_mode_groups_alphabetically_with_no_witness_last() {
+        let exhibits = [makeExhibit(id: "A", witness: "Smith"),
+                        makeExhibit(id: "B", witness: "Adams"),
+                        makeExhibit(id: "C", witness: nil)]
+        let sections = ExhibitGrouping.sections(for: exhibits, mode: .witness)
+        XCTAssertEqual(sections.map(\.title), ["Adams", "Smith", "No Witness"])
+        XCTAssertEqual(sections[0].exhibits.map(\.id), ["B"])
+        XCTAssertEqual(sections[2].exhibits.map(\.id), ["C"])
+    }
+
+    func test_witness_mode_all_no_witness() {
+        let sections = ExhibitGrouping.sections(for: [makeExhibit(id: "A")], mode: .witness)
+        XCTAssertEqual(sections.map(\.title), ["No Witness"])
     }
 }
 

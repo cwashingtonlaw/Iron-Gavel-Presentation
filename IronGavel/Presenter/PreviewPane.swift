@@ -6,11 +6,14 @@ struct PreviewPane: View {
     @State private var exportToast: String?
     @State private var zoomMode = false
     @State private var laserMode = false
+    @State private var spotlightMode = false
     @State private var showDisposition = false
     @State private var showEditor = false
     @State private var showComparePicker = false
 
-    private let flattener = AnnotationFlattener()
+    private var flattener: AnnotationFlattener {
+        AnnotationFlattener(highlightOpacity: state.settings.highlightOpacity)
+    }
     private let dispositionLog = DispositionLog()
     private let auditLog = AuditLog()
 
@@ -34,8 +37,11 @@ struct PreviewPane: View {
                 }
                 .overlay {
                     ZStack {
+                        SpotlightLayer()
                         LaserLayer()
-                        if laserMode {
+                        if spotlightMode {
+                            SpotlightDragSurface()
+                        } else if laserMode {
                             LaserDragSurface()
                         } else if zoomMode && state.juryViewport.isFull {
                             ZoomSelectionView { rect in
@@ -221,6 +227,16 @@ struct PreviewPane: View {
             }
             .tint(laserMode ? Theme.Palette.live : Theme.Palette.accent)
             .accessibilityIdentifier("laser.toggle")
+
+            Button {
+                spotlightMode.toggle()
+                if spotlightMode { laserMode = false; state.clearLaser() }
+                else { state.clearSpotlight() }
+            } label: {
+                Label(spotlightMode ? "Spotlight On" : "Spotlight", systemImage: "viewfinder")
+            }
+            .tint(spotlightMode ? Theme.Palette.live : Theme.Palette.accent)
+            .accessibilityIdentifier("spotlight.toggle")
 
             Button { showComparePicker = true } label: {
                 Label("Compare", systemImage: "rectangle.split.2x1")

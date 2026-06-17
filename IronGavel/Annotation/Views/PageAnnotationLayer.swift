@@ -24,7 +24,7 @@ struct PageAnnotationLayer: View {
         case .highlight:
             if let b = annotation.bounds {
                 Rectangle()
-                    .fill(annotation.color.uiColor.opacity(0.4))
+                    .fill(annotation.color.uiColor.opacity(state.settings.highlightOpacity))
                     .frame(width: b.w * size.width, height: b.h * size.height)
                     .position(x: (b.x + b.w/2) * size.width, y: (b.y + b.h/2) * size.height)
                     .accessibilityElement()
@@ -58,7 +58,8 @@ struct PageAnnotationLayer: View {
             }
             .frame(width: size.width, height: size.height)
         case .freehand:
-            FreehandReadOnly(annotation: annotation, color: annotation.color.uiColor)
+            FreehandReadOnly(annotation: annotation, color: annotation.color.uiColor,
+                             lineWidth: CGFloat(state.settings.freehandPenWidth))
                 .allowsHitTesting(false)
                 .accessibilityIdentifier("annotation.freehand.\(annotation.id)")
         }
@@ -100,13 +101,15 @@ struct PageAnnotationLayer: View {
 private struct FreehandReadOnly: View {
     let annotation: Annotation
     let color: Color
+    let lineWidth: CGFloat
 
     var body: some View {
         let data = decodedData()
         FreehandCanvas(
             drawingData: .constant(data),
             inkColor: UIColor(color),
-            isPresenter: false
+            isPresenter: false,
+            lineWidth: lineWidth
         )
     }
 
@@ -128,7 +131,8 @@ private struct FreehandActive: View {
         FreehandCanvas(
             drawingData: $data,
             inkColor: UIColor(state.currentColor.uiColor),
-            isPresenter: true
+            isPresenter: true,
+            lineWidth: CGFloat(state.settings.freehandPenWidth)
         )
         .onChange(of: data) { _, newValue in
             let b64 = newValue.base64EncodedString()

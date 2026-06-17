@@ -24,7 +24,7 @@ struct PageAnnotationLayerJury: View {
         case .highlight:
             if let b = annotation.bounds {
                 Rectangle()
-                    .fill(annotation.color.uiColor.opacity(0.4))
+                    .fill(annotation.color.uiColor.opacity(state.settings.highlightOpacity))
                     .frame(width: b.w * size.width, height: b.h * size.height)
                     .position(x: (b.x + b.w/2) * size.width, y: (b.y + b.h/2) * size.height)
             }
@@ -42,7 +42,8 @@ struct PageAnnotationLayerJury: View {
                 FreehandCanvas(
                     drawingData: .constant(data),
                     inkColor: UIColor(annotation.color.uiColor),
-                    isPresenter: false
+                    isPresenter: false,
+                    lineWidth: CGFloat(state.settings.freehandPenWidth)
                 )
             }
         }
