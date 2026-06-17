@@ -1,10 +1,12 @@
 import SwiftUI
+import UIKit
 
 struct PresenterToolbar: View {
     @Environment(AppState.self) private var state
     let openCaseAction: () -> Void
     let importAction: () -> Void
     let searchDocsAction: () -> Void
+    let whiteboardAction: () -> Void
 
     @State private var showSettings = false
     @State private var showChecklist = false
@@ -27,6 +29,16 @@ struct PresenterToolbar: View {
             }
             .disabled(state.currentCase == nil)
             .accessibilityIdentifier("toolbar.docSearch")
+
+            Button(action: whiteboardAction) {
+                Label("Whiteboard", systemImage: "rectangle.and.pencil.and.ellipsis")
+            }
+            .disabled(state.currentCase == nil)
+            .accessibilityIdentifier("toolbar.whiteboard")
+
+            AirPlayRoutePicker(tint: UIColor(Theme.Palette.accent))
+                .frame(width: 40, height: 40)
+                .accessibilityIdentifier("toolbar.airplay")
 
             Button(action: exportList) {
                 Label("Export List", systemImage: "square.and.arrow.up")

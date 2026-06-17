@@ -65,6 +65,20 @@ final class AnnotationStore {
         onChange?(exhibitId)
     }
 
+    func remove(id: UUID, exhibitId: String, page: Int) {
+        guard var doc = documents[exhibitId] else { return }
+        let key = String(page)
+        guard var list = doc.pages[key] else { return }
+        let before = list.count
+        list.removeAll { $0.id == id }
+        guard list.count != before else { return }
+        doc.pages[key] = list
+        doc.lastModified = ISO8601DateFormatter().string(from: Date())
+        documents[exhibitId] = doc
+        bumpVersion(exhibitId: exhibitId, page: page)
+        onChange?(exhibitId)
+    }
+
     private func bumpVersion(exhibitId: String, page: Int) {
         var map = versions[exhibitId] ?? [:]
         map[page] = (map[page] ?? 0) + 1

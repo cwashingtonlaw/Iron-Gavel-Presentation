@@ -56,24 +56,29 @@ struct ConfidenceMonitor: View {
 
     private var frameColor: Color {
         switch state.juryDisplay {
-        case .empty:   return Color.white.opacity(0.35)
-        case .blank:   return .orange
-        case .exhibit: return Theme.Palette.live
+        case .empty:                return Color.white.opacity(0.35)
+        case .blank:                return .orange
+        case .exhibit, .whiteboard: return Theme.Palette.live
         }
     }
 
     private var stateLabel: String {
         switch state.juryDisplay {
-        case .empty:   return "IDLE"
-        case .blank:   return "BLANKED"
-        case .exhibit: return "● LIVE"
+        case .empty:      return "IDLE"
+        case .blank:      return "BLANKED"
+        case .exhibit:    return "● LIVE"
+        case .whiteboard: return "● LIVE"
         }
     }
 
     private var stateDetail: String? {
-        if case let .exhibit(exhibit, page, _) = state.juryDisplay {
+        switch state.juryDisplay {
+        case let .exhibit(exhibit, page, _):
             return "\(exhibit.displayNumber ?? exhibit.description) · p\(page + 1)"
+        case .whiteboard:
+            return "Whiteboard"
+        default:
+            return nil
         }
-        return nil
     }
 }

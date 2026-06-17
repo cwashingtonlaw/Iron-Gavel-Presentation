@@ -22,6 +22,8 @@ final class VideoController {
     @ObservationIgnored private var lastSecond = -1
 
     init() {
+        // Keep video inside our jury AVPlayerLayer; never hand it off to AirPlay.
+        player.allowsExternalPlayback = false
         let interval = CMTime(value: 1, timescale: 10) // 0.1s
         timeObserver = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
             MainActor.assumeIsolated {

@@ -29,5 +29,17 @@ struct IronGavelApp: App {
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         try? data.write(to: folder.appendingPathComponent("exhibits.json"))
         state.apply(case: kase, folder: folder)
+
+        if ProcessInfo.processInfo.arguments.contains("--ui-test-seed-callouts"),
+           let first = kase.exhibits.first(where: { $0.mediaType == .pdf && $0.status == .admitted }) {
+            let src = NormalizedRect(x: 0.1, y: 0.1, w: 0.2, h: 0.2)
+            state.annotationStore.add(Annotation(tool: .callout, color: .red,
+                bounds: NormalizedRect(x: 0.1, y: 0.5, w: 0.25, h: 0.25), calloutSource: src),
+                exhibitId: first.id, page: 0)
+            state.annotationStore.add(Annotation(tool: .callout, color: .blue,
+                bounds: NormalizedRect(x: 0.6, y: 0.5, w: 0.25, h: 0.25), calloutSource: src),
+                exhibitId: first.id, page: 0)
+            state.select(first)
+        }
     }
 }
