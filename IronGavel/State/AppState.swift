@@ -1,3 +1,4 @@
+import CoreGraphics
 import Foundation
 import Observation
 
@@ -15,6 +16,11 @@ final class AppState {
     var currentTool: AnnotationTool?
     var currentColor: AnnotationColor = .yellow
     private(set) var juryViewport: JuryViewport = .full
+    /// Normalized (0...1) laser-pointer position, mirrored to the jury. nil = hidden.
+    private(set) var laserPoint: CGPoint?
+    /// Second exhibit shown alongside the published one in side-by-side compare. nil = off.
+    private(set) var compareExhibit: Exhibit?
+    private(set) var comparePage: Int = 0
     let annotationStore = AnnotationStore()
     let videoController = VideoController()
     let settings: SettingsStore
@@ -82,6 +88,31 @@ final class AppState {
 
     func resetJuryViewport() {
         juryViewport = .full
+    }
+
+    // MARK: Laser pointer
+
+    func setLaser(_ point: CGPoint) { laserPoint = point }
+    func clearLaser() { laserPoint = nil }
+
+    // MARK: Side-by-side compare
+
+    var isComparing: Bool { compareExhibit != nil }
+
+    /// The published exhibit acting as the left/primary pane during compare, if any.
+    var comparePrimary: (exhibit: Exhibit, page: Int)? {
+        if case let .exhibit(exhibit, page, _) = juryDisplay { return (exhibit, page) }
+        return nil
+    }
+
+    func startCompare(with exhibit: Exhibit) {
+        compareExhibit = exhibit
+        comparePage = 0
+    }
+
+    func stopCompare() {
+        compareExhibit = nil
+        comparePage = 0
     }
 
     func blank() {

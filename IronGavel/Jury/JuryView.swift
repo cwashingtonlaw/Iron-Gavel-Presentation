@@ -9,6 +9,7 @@ struct JuryView: View {
             content
         }
         .overlay(alignment: .bottom) { exhibitBanner }
+        .overlay { LaserLayer() }
         .accessibilityIdentifier("jury.view")
     }
 
@@ -38,7 +39,9 @@ struct JuryView: View {
         case .blank:
             BlankView()
         case let .exhibit(exhibit, page, _):
-            if let fileURL = resolvedURL(for: exhibit) {
+            if state.isComparing, let secondary = state.compareExhibit {
+                CompareSplitView(left: (exhibit, page), right: (secondary, state.comparePage))
+            } else if let fileURL = resolvedURL(for: exhibit) {
                 ViewportContainer(viewport: state.juryViewport) {
                     ZStack {
                         mediaContent(exhibit: exhibit, fileURL: fileURL, page: page)
