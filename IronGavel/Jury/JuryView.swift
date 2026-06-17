@@ -9,6 +9,7 @@ struct JuryView: View {
             content
         }
         .overlay(alignment: .bottom) { exhibitBanner }
+        .overlay { SpotlightLayer() }
         .overlay { LaserLayer() }
         .accessibilityIdentifier("jury.view")
     }

@@ -23,6 +23,23 @@ final class LaserCompareTests: XCTestCase {
         XCTAssertNil(s.laserPoint)
     }
 
+    func test_spotlight_set_and_clear() {
+        let s = AppState()
+        XCTAssertNil(s.spotlight)
+        s.setSpotlight(NormalizedRect(x: 0.2, y: 0.3, w: 0.4, h: 0.1))
+        XCTAssertEqual(s.spotlight, NormalizedRect(x: 0.2, y: 0.3, w: 0.4, h: 0.1))
+        s.clearSpotlight()
+        XCTAssertNil(s.spotlight)
+    }
+
+    func test_spotlight_is_clamped_to_unit_square() {
+        let s = AppState()
+        s.setSpotlight(NormalizedRect(x: -0.1, y: 0.5, w: 2.0, h: 0.2))
+        let sp = try! XCTUnwrap(s.spotlight)
+        XCTAssertEqual(sp.x, 0, accuracy: 0.0001)
+        XCTAssertEqual(sp.x + sp.w, 1, accuracy: 0.0001)
+    }
+
     func test_compare_primary_is_the_published_exhibit() {
         let admitted = exhibit("D-001", status: .admitted)
         let s = AppState()

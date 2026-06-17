@@ -167,7 +167,8 @@ struct PresenterScene: View {
         let annotations = state.annotationStore.annotations(
             exhibitId: AppState.whiteboardExhibitId, page: 0)
         do {
-            try whiteboardExporter.export(annotations: annotations, to: out)
+            try whiteboardExporter.export(annotations: annotations, to: out,
+                                          highlightOpacity: state.settings.highlightOpacity)
             whiteboardToast = "Saved to \(out.path)"
         } catch {
             whiteboardToast = "Could not save board: \(error)"
