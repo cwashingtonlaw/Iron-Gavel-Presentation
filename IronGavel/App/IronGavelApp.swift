@@ -19,9 +19,15 @@ struct IronGavelApp: App {
     private func loadUITestFixtureIfRequested() {
         guard ProcessInfo.processInfo.arguments.contains("--ui-test-fixture") else { return }
         guard let url = Bundle.main.url(forResource: "ui-test-exhibits", withExtension: "json"),
-              let kase = try? JSONDecoder().decode(Case.self, from: Data(contentsOf: url)) else {
+              let data = try? Data(contentsOf: url),
+              let kase = try? JSONDecoder().decode(Case.self, from: data) else {
             return
         }
-        state.apply(case: kase, folder: url.deletingLastPathComponent())
+        // Copy the fixture into a writable temp folder (the app bundle is read-only) so
+        // in-app edits — key flag, folder, status — can persist during UI tests.
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("UITestCase")
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        try? data.write(to: folder.appendingPathComponent("exhibits.json"))
+        state.apply(case: kase, folder: folder)
     }
 }

@@ -13,7 +13,6 @@ struct PreviewPane: View {
     private let flattener = AnnotationFlattener()
     private let dispositionLog = DispositionLog()
     private let auditLog = AuditLog()
-    private let manifestWriter = CaseManifestWriter()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -86,8 +85,8 @@ struct PreviewPane: View {
             if let exhibit = state.selectedExhibit {
                 ExhibitEditorSheet(
                     exhibit: exhibit,
-                    onSave: { edited in showEditor = false; updateExhibit(original: exhibit, edited: edited) },
-                    onDelete: { showEditor = false; deleteExhibit(exhibit) },
+                    onSave: { edited in showEditor = false; CaseController(state: state).replace(edited) },
+                    onDelete: { showEditor = false; CaseController(state: state).delete(exhibit) },
                     onCancel: { showEditor = false }
                 )
             }
@@ -108,6 +107,10 @@ struct PreviewPane: View {
         .onChange(of: state.selectedExhibit?.id) { _, _ in
             page = 0
             loadVideoIfNeeded()
+            applyRequestedPageIfNeeded(state.requestedPreviewPage)
+        }
+        .onChange(of: state.requestedPreviewPage) { _, requested in
+            applyRequestedPageIfNeeded(requested)
         }
         .onAppear { loadVideoIfNeeded() }
         .onChange(of: videoSecond) { _, sec in
@@ -130,6 +133,10 @@ struct PreviewPane: View {
                 .lineLimit(1)
             StatusBadge(status: exhibit.status)
             Spacer(minLength: Theme.Spacing.m)
+            Button { CaseController(state: state).toggleKey(exhibit.id) } label: {
+                Image(systemName: exhibit.isKey ? "star.fill" : "star")
+            }
+            .accessibilityIdentifier("exhibit.key")
             Button { showEditor = true } label: {
                 Image(systemName: "pencil")
             }
@@ -144,24 +151,12 @@ struct PreviewPane: View {
         .padding(.top, Theme.Spacing.xs)
     }
 
-    private func updateExhibit(original: Exhibit, edited: Exhibit) {
-        guard let folder = state.caseFolderURL, let kase = state.currentCase else { return }
-        let exhibits = kase.exhibits.map { $0.file == original.file ? edited : $0 }
-        persist(kase: kase, exhibits: exhibits, folder: folder, select: edited)
-    }
-
-    private func deleteExhibit(_ exhibit: Exhibit) {
-        guard let folder = state.caseFolderURL, let kase = state.currentCase else { return }
-        let exhibits = kase.exhibits.filter { $0.file != exhibit.file }
-        persist(kase: kase, exhibits: exhibits, folder: folder, select: nil)
-    }
-
-    private func persist(kase: Case, exhibits: [Exhibit], folder: URL, select: Exhibit?) {
-        let updated = Case(contractVersion: kase.contractVersion, case: kase.`case`,
-                           generated: kase.generated, pathBase: kase.pathBase, exhibits: exhibits)
-        try? manifestWriter.write(updated, to: folder)
-        state.apply(case: updated, folder: folder)
-        state.selectedExhibit = select
+    private func applyRequestedPageIfNeeded(_ requested: Int?) {
+        guard let requested,
+              let exhibit = state.selectedExhibit,
+              exhibit.mediaType == .pdf else { return }
+        page = requested
+        state.requestedPreviewPage = nil
     }
 
     private func logDisposition(exhibit: Exhibit, objection: String, ruling: String, note: String) {

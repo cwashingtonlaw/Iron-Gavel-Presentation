@@ -4,6 +4,7 @@ struct PresenterToolbar: View {
     @Environment(AppState.self) private var state
     let openCaseAction: () -> Void
     let importAction: () -> Void
+    let searchDocsAction: () -> Void
 
     @State private var showSettings = false
     @State private var showChecklist = false
@@ -20,6 +21,12 @@ struct PresenterToolbar: View {
             }
             .disabled(state.currentCase == nil)
             .accessibilityIdentifier("toolbar.import")
+
+            Button(action: searchDocsAction) {
+                Label("Search Docs", systemImage: "doc.text.magnifyingglass")
+            }
+            .disabled(state.currentCase == nil)
+            .accessibilityIdentifier("toolbar.docSearch")
 
             Button(action: exportList) {
                 Label("Export List", systemImage: "square.and.arrow.up")

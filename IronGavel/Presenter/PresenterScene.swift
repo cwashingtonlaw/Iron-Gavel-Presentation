@@ -5,6 +5,7 @@ struct PresenterScene: View {
     @Environment(AppState.self) private var state
     @State private var showFolderPicker = false
     @State private var showImporter = false
+    @State private var showDocSearch = false
     @State private var loadError: String?
     @State private var watcher: CaseWatcher?
 
@@ -17,7 +18,8 @@ struct PresenterScene: View {
         } detail: {
             VStack(spacing: 0) {
                 PresenterToolbar(openCaseAction: { showFolderPicker = true },
-                                 importAction: { showImporter = true })
+                                 importAction: { showImporter = true },
+                                 searchDocsAction: { showDocSearch = true })
                 Divider()
                 if state.currentCase == nil {
                     CaseLibraryView(
@@ -44,6 +46,17 @@ struct PresenterScene: View {
                       allowedContentTypes: [.pdf, .image, .audiovisualContent, .audio],
                       allowsMultipleSelection: true) { result in
             handleImport(result)
+        }
+        .sheet(isPresented: $showDocSearch) {
+            DocumentSearchView(
+                onJump: { exhibit, page in
+                    showDocSearch = false
+                    state.select(exhibit)
+                    state.requestedPreviewPage = page
+                },
+                onDismiss: { showDocSearch = false }
+            )
+            .environment(state)
         }
         .alert("Cannot load case", isPresented: errorBinding, presenting: loadError) { _ in
             Button("OK", role: .cancel) { loadError = nil }
