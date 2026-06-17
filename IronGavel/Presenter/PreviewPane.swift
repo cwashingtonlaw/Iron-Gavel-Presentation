@@ -61,7 +61,7 @@ struct PreviewPane: View {
                     zoomControls()
                 }
                 if exhibit.mediaType == .pdf {
-                    pageControls()
+                    pageControls(fileURL: fileURL)
                 }
                 if exhibit.mediaType == .video || exhibit.mediaType == .audio {
                     VideoTransportControls()
@@ -312,14 +312,37 @@ struct PreviewPane: View {
         .padding(.vertical, 2)
     }
 
-    private func pageControls() -> some View {
-        HStack {
-            Button("◀︎") { page = max(0, page - 1) }
-            Text("Page \(page + 1)")
-            Button("▶︎") { page += 1 }
+    private func pageControls(fileURL: URL) -> some View {
+        let count = PDFDocumentCache.shared.document(for: fileURL)?.pageCount ?? 0
+        return HStack(spacing: Theme.Spacing.m) {
+            Button("◀︎") { page = PageNavigation.clampPage(page - 1, count: count) }
+                .disabled(page <= 0)
+                .accessibilityIdentifier("page.prev")
+
+            if count > 0 {
+                Menu {
+                    ForEach(0..<count, id: \.self) { i in
+                        Button("Page \(i + 1)") { page = PageNavigation.clampPage(i, count: count) }
+                    }
+                } label: {
+                    Text("Page \(page + 1) of \(count)")
+                        .monospacedDigit()
+                }
+                .accessibilityIdentifier("page.jump")
+            } else {
+                Text("Page \(page + 1)").monospacedDigit()
+            }
+
+            Button("▶︎") { page = PageNavigation.clampPage(page + 1, count: count) }
+                .disabled(count > 0 && page >= count - 1)
+                .accessibilityIdentifier("page.next")
         }
         .buttonStyle(.bordered)
         .padding(.vertical, 4)
+        .onChange(of: count) { _, newCount in
+            // A newly-loaded/shorter document must not leave us past the last page.
+            page = PageNavigation.clampPage(page, count: newCount)
+        }
     }
 
     private func resolvedURL(for exhibit: Exhibit) -> URL? {

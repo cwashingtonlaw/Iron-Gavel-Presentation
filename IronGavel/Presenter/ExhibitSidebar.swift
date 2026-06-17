@@ -36,6 +36,9 @@ struct ExhibitSidebar: View {
                     ForEach(section.exhibits) { exhibit in
                         row(for: exhibit).tag(exhibit.id)
                     }
+                    .onMove { from, to in
+                        CaseController(state: state).reorder(section: section.exhibits, from: from, to: to)
+                    }
                 } header: {
                     Text(section.title.uppercased())
                         .font(Theme.Typography.sectionLabel)

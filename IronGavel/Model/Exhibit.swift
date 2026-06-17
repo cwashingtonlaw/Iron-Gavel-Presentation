@@ -22,6 +22,9 @@ struct Exhibit: Codable, Hashable, Identifiable {
     /// Folder / group name within the case (by witness or topic). nil = "Unfiled".
     /// Absent in legacy/external manifests.
     let folder: String?
+    /// Manual sort position assigned by drag-reordering the sidebar. nil = unordered
+    /// (sorts after ordered items, by import order). Absent in legacy/external manifests.
+    let order: Int?
 
     enum CodingKeys: String, CodingKey {
         case id, party, description, file, witness, bates, status
@@ -29,13 +32,13 @@ struct Exhibit: Codable, Hashable, Identifiable {
         case objection, ruling, notes
         case exhibitNumber = "exhibit_number"
         case isKey = "is_key"
-        case folder
+        case folder, order
     }
 
     init(id: String, party: Party, description: String, file: String,
          witness: String?, bates: String?, status: ExhibitStatus, mediaType: MediaType,
          objection: String?, ruling: String?, notes: String?, exhibitNumber: String? = nil,
-         isKey: Bool = false, folder: String? = nil) {
+         isKey: Bool = false, folder: String? = nil, order: Int? = nil) {
         self.id = id
         self.party = party
         self.description = description
@@ -50,6 +53,7 @@ struct Exhibit: Codable, Hashable, Identifiable {
         self.exhibitNumber = exhibitNumber
         self.isKey = isKey
         self.folder = folder
+        self.order = order
     }
 
     init(from decoder: Decoder) throws {
@@ -68,6 +72,15 @@ struct Exhibit: Codable, Hashable, Identifiable {
         exhibitNumber = try c.decodeIfPresent(String.self, forKey: .exhibitNumber)
         isKey = try c.decodeIfPresent(Bool.self, forKey: .isKey) ?? false
         folder = try c.decodeIfPresent(String.self, forKey: .folder)
+        order = try c.decodeIfPresent(Int.self, forKey: .order)
+    }
+
+    /// Returns a copy with a new manual sort position. Used by drag-reordering.
+    func withOrder(_ newOrder: Int?) -> Exhibit {
+        Exhibit(id: id, party: party, description: description, file: file,
+                witness: witness, bates: bates, status: status, mediaType: mediaType,
+                objection: objection, ruling: ruling, notes: notes,
+                exhibitNumber: exhibitNumber, isKey: isKey, folder: folder, order: newOrder)
     }
 
     /// The exhibit number to display, if any. Falls back to `id` for externally-authored
