@@ -10,7 +10,9 @@ struct PresenterToolbar: View {
 
     @State private var showSettings = false
     @State private var showChecklist = false
+    @State private var recordResult: String?
     private let exporter = ExhibitListExporter()
+    private let recordExporter = RecordExporter()
     private let audit = AuditLog()
 
     var body: some View {
@@ -46,6 +48,12 @@ struct PresenterToolbar: View {
             .disabled(state.currentCase == nil)
             .accessibilityIdentifier("toolbar.exportList")
 
+            Button(action: exportRecord) {
+                Label("Export Record", systemImage: "folder.badge.plus")
+            }
+            .disabled(state.currentCase == nil)
+            .accessibilityIdentifier("toolbar.exportRecord")
+
             Button { showChecklist = true } label: {
                 Label("Checklist", systemImage: "checklist")
             }
@@ -80,6 +88,12 @@ struct PresenterToolbar: View {
         .sheet(isPresented: $showChecklist) {
             ChecklistView { showChecklist = false }
         }
+        .alert("Trial Record Exported", isPresented: Binding(
+            get: { recordResult != nil }, set: { if !$0 { recordResult = nil } })) {
+            Button("OK", role: .cancel) { recordResult = nil }
+        } message: {
+            Text(recordResult ?? "")
+        }
     }
 
     private var canPublish: Bool {
@@ -109,6 +123,26 @@ struct PresenterToolbar: View {
         guard let kase = state.currentCase, let folder = state.caseFolderURL else { return }
         try? exporter.write(kase, to: folder)
     }
+
+    private func exportRecord() {
+        guard let kase = state.currentCase, let folder = state.caseFolderURL else { return }
+        let stamp = Self.recordStampFormatter.string(from: Date())
+        do {
+            let dir = try recordExporter.export(kase: kase, caseFolder: folder, stamp: stamp)
+            logAudit(kind: "export-record", detail: dir.lastPathComponent)
+            recordResult = "Saved to \(dir.path)"
+        } catch {
+            recordResult = "Could not export record: \(error.localizedDescription)"
+        }
+    }
+
+    /// Filesystem-safe timestamp for the record folder (no colons).
+    private static let recordStampFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "yyyy-MM-dd-HHmm"
+        return f
+    }()
 
     private func logAudit(kind: String, detail: String) {
         guard let folder = state.caseFolderURL else { return }

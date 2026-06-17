@@ -14,6 +14,13 @@ enum ExhibitGrouping {
     struct Section: Equatable { let title: String; let exhibits: [Exhibit] }
 
     static func sections(for exhibits: [Exhibit], mode: SidebarGrouping) -> [Section] {
+        // Each section's exhibits honor manual drag-order, then import order.
+        rawSections(for: exhibits, mode: mode).map {
+            Section(title: $0.title, exhibits: ExhibitReorder.sorted($0.exhibits))
+        }
+    }
+
+    private static func rawSections(for exhibits: [Exhibit], mode: SidebarGrouping) -> [Section] {
         switch mode {
         case .party:
             return Party.allCases.compactMap { party in

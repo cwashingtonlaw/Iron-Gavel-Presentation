@@ -16,7 +16,7 @@ enum ExhibitMutator {
             Exhibit(id: ex.id, party: ex.party, description: ex.description, file: ex.file,
                     witness: ex.witness, bates: ex.bates, status: ex.status, mediaType: ex.mediaType,
                     objection: ex.objection, ruling: ex.ruling, notes: ex.notes,
-                    exhibitNumber: ex.exhibitNumber, isKey: !ex.isKey, folder: ex.folder)
+                    exhibitNumber: ex.exhibitNumber, isKey: !ex.isKey, folder: ex.folder, order: ex.order)
         }
     }
 
@@ -27,7 +27,7 @@ enum ExhibitMutator {
             Exhibit(id: ex.id, party: ex.party, description: ex.description, file: ex.file,
                     witness: ex.witness, bates: ex.bates, status: ex.status, mediaType: ex.mediaType,
                     objection: ex.objection, ruling: ex.ruling, notes: ex.notes,
-                    exhibitNumber: ex.exhibitNumber, isKey: ex.isKey, folder: value)
+                    exhibitNumber: ex.exhibitNumber, isKey: ex.isKey, folder: value, order: ex.order)
         }
     }
 }

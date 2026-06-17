@@ -30,6 +30,21 @@ struct CaseController {
         apply({ ExhibitMutator.setFolder(folder, for: id, in: $0) }, selectId: state.selectedExhibit?.id)
     }
 
+    /// Persist a drag-reorder of one grouping section. `section` is the section's currently
+    /// displayed (sorted) exhibits; `from`/`to` are the SwiftUI `.onMove` offsets.
+    func reorder(section: [Exhibit], from: IndexSet, to: Int) {
+        let moved = ExhibitReorder.move(section, fromOffsets: from, toOffset: to)
+        let orders = Dictionary(uniqueKeysWithValues: moved.map { ($0.id, $0.order) })
+        apply({ kase in
+            let exhibits = kase.exhibits.map { ex -> Exhibit in
+                if let newOrder = orders[ex.id] { return ex.withOrder(newOrder) }
+                return ex
+            }
+            return Case(contractVersion: kase.contractVersion, case: kase.`case`,
+                        generated: kase.generated, pathBase: kase.pathBase, exhibits: exhibits)
+        }, selectId: state.selectedExhibit?.id)
+    }
+
     /// Replace an exhibit wholesale (used by the editor), keyed by its stable `id`.
     func replace(_ edited: Exhibit) {
         apply({ ExhibitMutator.replacing(edited.id, in: $0) { _ in edited } }, selectId: edited.id)

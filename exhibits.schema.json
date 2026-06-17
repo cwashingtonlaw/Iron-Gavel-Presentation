@@ -77,6 +77,10 @@
           "folder": {
             "type": "string",
             "description": "Folder / group name within the case (by witness or topic). App-written; absent = Unfiled."
+          },
+          "order": {
+            "type": "integer",
+            "description": "Manual sort position within a grouping section, set by drag-reordering the sidebar. App-written; absent = unordered (sorts after ordered items, by import order)."
           }
         }
       }
