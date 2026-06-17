@@ -14,6 +14,7 @@ struct ExhibitEditorSheet: View {
     @State private var descriptionText: String
     @State private var witness: String
     @State private var bates: String
+    @State private var notes: String
 
     init(exhibit: Exhibit, onSave: @escaping (Exhibit) -> Void,
          onDelete: @escaping () -> Void, onCancel: @escaping () -> Void) {
@@ -27,6 +28,7 @@ struct ExhibitEditorSheet: View {
         _descriptionText = State(initialValue: exhibit.description)
         _witness = State(initialValue: exhibit.witness ?? "")
         _bates = State(initialValue: exhibit.bates ?? "")
+        _notes = State(initialValue: exhibit.notes ?? "")
     }
 
     var body: some View {
@@ -49,6 +51,15 @@ struct ExhibitEditorSheet: View {
                     TextField("Bates", text: $bates)
                 }
                 Section {
+                    TextField("Presenter notes (only you see these)", text: $notes, axis: .vertical)
+                        .lineLimit(2...6)
+                        .accessibilityIdentifier("editor.notes")
+                } header: {
+                    Text("Presenter Notes")
+                } footer: {
+                    Text("Private to you during examination — never shown to the jury.")
+                }
+                Section {
                     Button("Delete Exhibit", role: .destructive, action: onDelete)
                         .accessibilityIdentifier("editor.delete")
                 }
@@ -69,7 +80,8 @@ struct ExhibitEditorSheet: View {
                 witness: witness.isEmpty ? nil : witness,
                 bates: bates.isEmpty ? nil : bates,
                 status: status, mediaType: exhibit.mediaType,
-                objection: exhibit.objection, ruling: exhibit.ruling, notes: exhibit.notes,
+                objection: exhibit.objection, ruling: exhibit.ruling,
+                notes: notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : notes,
                 exhibitNumber: number.trimmingCharacters(in: .whitespaces).isEmpty ? nil
                     : number.trimmingCharacters(in: .whitespaces))
     }

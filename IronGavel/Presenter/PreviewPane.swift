@@ -5,8 +5,10 @@ struct PreviewPane: View {
     @State private var page: Int = 0
     @State private var exportToast: String?
     @State private var zoomMode = false
+    @State private var laserMode = false
     @State private var showDisposition = false
     @State private var showEditor = false
+    @State private var showComparePicker = false
 
     private let flattener = AnnotationFlattener()
     private let dispositionLog = DispositionLog()
@@ -15,7 +17,9 @@ struct PreviewPane: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if let exhibit = state.selectedExhibit, let fileURL = resolvedURL(for: exhibit) {
+            if state.isComparing, let primary = state.comparePrimary, let secondary = state.compareExhibit {
+                compareLayout(primary: primary, secondary: secondary)
+            } else if let exhibit = state.selectedExhibit, let fileURL = resolvedURL(for: exhibit) {
                 header(for: exhibit)
                 ViewportContainer(viewport: state.juryViewport) {
                     ZStack {
@@ -30,15 +34,24 @@ struct PreviewPane: View {
                     }
                 }
                 .overlay {
-                    if zoomMode && state.juryViewport.isFull {
-                        ZoomSelectionView { rect in
-                            state.setJuryViewport(rect)
-                            zoomMode = false
+                    ZStack {
+                        LaserLayer()
+                        if laserMode {
+                            LaserDragSurface()
+                        } else if zoomMode && state.juryViewport.isFull {
+                            ZoomSelectionView { rect in
+                                state.setJuryViewport(rect)
+                                zoomMode = false
+                            }
                         }
                     }
                 }
                 .padding(.horizontal, 12)
                 .accessibilityIdentifier("preview.pane")
+                if let notes = exhibit.notes, !notes.isEmpty {
+                    presenterNotes(notes)
+                }
+                presenterControls()
                 if exhibit.mediaType == .pdf || exhibit.mediaType == .image {
                     zoomControls()
                 }
@@ -79,6 +92,7 @@ struct PreviewPane: View {
                 )
             }
         }
+        .sheet(isPresented: $showComparePicker) { compareePicker }
         .sheet(isPresented: $showDisposition) {
             if let exhibit = state.selectedExhibit {
                 DispositionSheet(
@@ -181,6 +195,91 @@ struct PreviewPane: View {
         if exhibit.mediaType == .audio { return false }
         if exhibit.mediaType == .video && state.videoController.isPlaying { return false }
         return true
+    }
+
+    private func compareLayout(primary: (exhibit: Exhibit, page: Int), secondary: Exhibit) -> some View {
+        VStack(spacing: Theme.Spacing.s) {
+            HStack {
+                Label("Side-by-Side", systemImage: "rectangle.split.2x1")
+                    .font(Theme.Typography.itemTitle)
+                Spacer()
+                Button(role: .destructive) { state.stopCompare() } label: {
+                    Label("Stop", systemImage: "xmark.circle")
+                }
+                .accessibilityIdentifier("compare.stop")
+            }
+            .tint(Theme.Palette.accent)
+            .padding(.horizontal, Theme.Spacing.m)
+            CompareSplitView(left: primary, right: (secondary, state.comparePage))
+                .padding(.horizontal, 12)
+                .accessibilityIdentifier("preview.pane")
+        }
+    }
+
+    private func presenterControls() -> some View {
+        HStack(spacing: Theme.Spacing.m) {
+            Button {
+                laserMode.toggle()
+                if !laserMode { state.clearLaser() }
+            } label: {
+                Label(laserMode ? "Laser On" : "Laser", systemImage: "dot.scope")
+            }
+            .tint(laserMode ? Theme.Palette.live : Theme.Palette.accent)
+            .accessibilityIdentifier("laser.toggle")
+
+            Button { showComparePicker = true } label: {
+                Label("Compare", systemImage: "rectangle.split.2x1")
+            }
+            .disabled(state.comparePrimary == nil)
+            .accessibilityIdentifier("compare.open")
+            Spacer()
+        }
+        .buttonStyle(.bordered)
+        .font(.caption)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 2)
+    }
+
+    private func presenterNotes(_ notes: String) -> some View {
+        HStack(alignment: .top, spacing: Theme.Spacing.s) {
+            Image(systemName: "note.text").foregroundStyle(Theme.Palette.accent)
+            Text(notes).font(.callout)
+            Spacer()
+        }
+        .padding(Theme.Spacing.s)
+        .background(Theme.Palette.accent.opacity(0.08), in: RoundedRectangle(cornerRadius: Theme.Radius.chip))
+        .padding(.horizontal, 12)
+        .accessibilityIdentifier("presenter.notes")
+    }
+
+    private var otherExhibits: [Exhibit] {
+        let primaryID = state.comparePrimary?.exhibit.id
+        return (state.currentCase?.exhibits ?? []).filter { $0.id != primaryID }
+    }
+
+    private var compareePicker: some View {
+        NavigationStack {
+            List(otherExhibits) { exhibit in
+                Button {
+                    state.startCompare(with: exhibit)
+                    showComparePicker = false
+                } label: {
+                    HStack(spacing: Theme.Spacing.s) {
+                        ExhibitNumberChip(number: exhibit.displayNumber)
+                        Text(exhibit.description).foregroundStyle(.primary)
+                        Spacer()
+                    }
+                }
+                .accessibilityIdentifier("compare.pick.\(exhibit.id)")
+            }
+            .navigationTitle("Compare With…")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { showComparePicker = false }
+                }
+            }
+        }
     }
 
     @ViewBuilder
