@@ -4,7 +4,7 @@ struct ImagePreview: View {
     let fileURL: URL
 
     var body: some View {
-        if let image = UIImage(contentsOfFile: fileURL.path) {
+        if let image = ImageLoader.shared.image(at: fileURL) {
             Image(uiImage: image)
                 .resizable()
                 .aspectRatio(contentMode: .fit)

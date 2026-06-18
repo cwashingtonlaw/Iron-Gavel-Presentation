@@ -6,7 +6,7 @@ struct ImageJuryView: View {
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-            if let image = UIImage(contentsOfFile: fileURL.path) {
+            if let image = ImageLoader.shared.image(at: fileURL) {
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fit)

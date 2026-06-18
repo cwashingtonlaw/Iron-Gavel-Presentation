@@ -3,14 +3,15 @@ import SwiftUI
 @main
 struct IronGavelApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    @State private var state = AppState()
+    // Same instance the external jury scene uses (AppState.shared), so the two windows
+    // mirror one source of truth even if the display connects before the presenter appears.
+    @State private var state = AppState.shared
 
     var body: some Scene {
         WindowGroup {
             PresenterScene()
                 .environment(state)
                 .onAppear {
-                    JurySceneDelegate.sharedState = state
                     loadUITestFixtureIfRequested()
                 }
         }
