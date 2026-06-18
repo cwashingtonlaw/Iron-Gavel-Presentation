@@ -37,8 +37,6 @@ struct PresenterScene: View {
                     if let banner = state.lastStatusBanner {
                         bannerView(text: banner)
                     }
-                    ConfidenceMonitor()
-                    Divider()
                     PreviewPane()
                 }
             }

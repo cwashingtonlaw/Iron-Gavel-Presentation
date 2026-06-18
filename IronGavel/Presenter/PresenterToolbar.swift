@@ -75,6 +75,7 @@ struct PresenterToolbar: View {
             Button(action: toggleBlank) {
                 Label(isBlanked ? "Live" : "Blank", systemImage: isBlanked ? "play.fill" : "eye.slash")
             }
+            .keyboardShortcut("b", modifiers: .command)
             .accessibilityIdentifier("toolbar.blank")
 
             externalIndicator
