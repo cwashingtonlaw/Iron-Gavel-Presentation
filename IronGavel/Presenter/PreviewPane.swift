@@ -7,6 +7,7 @@ struct PreviewPane: View {
     @State private var zoomMode = false
     @State private var laserMode = false
     @State private var spotlightMode = false
+    @State private var showBinder = false
     @State private var showDisposition = false
     @State private var showEditor = false
     @State private var showComparePicker = false
@@ -57,6 +58,7 @@ struct PreviewPane: View {
                     presenterNotes(notes)
                 }
                 presenterControls()
+                binderControls(exhibit: exhibit)
                 if exhibit.mediaType == .pdf || exhibit.mediaType == .image {
                     zoomControls()
                 }
@@ -96,6 +98,9 @@ struct PreviewPane: View {
                     onCancel: { showEditor = false }
                 )
             }
+        }
+        .sheet(isPresented: $showBinder) {
+            BinderView(onDismiss: { showBinder = false })
         }
         .sheet(isPresented: $showComparePicker) { compareePicker }
         .sheet(isPresented: $showDisposition) {
@@ -243,6 +248,39 @@ struct PreviewPane: View {
             }
             .disabled(state.comparePrimary == nil)
             .accessibilityIdentifier("compare.open")
+            Spacer()
+        }
+        .buttonStyle(.bordered)
+        .font(.caption)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 2)
+    }
+
+    private func binderControls(exhibit: Exhibit) -> some View {
+        HStack(spacing: Theme.Spacing.m) {
+            Button {
+                state.addBinderStep(exhibitId: exhibit.id, page: page)
+            } label: {
+                Label("Add to Binder", systemImage: "text.badge.plus")
+            }
+            .accessibilityIdentifier("binder.add")
+
+            Button { showBinder = true } label: {
+                Label("Binder", systemImage: "books.vertical")
+            }
+            .accessibilityIdentifier("binder.open")
+
+            if !state.binderSteps.isEmpty {
+                Divider().frame(height: 18)
+                Button("◀︎") { state.backBinder() }
+                    .disabled(!state.canBackBinder)
+                    .accessibilityIdentifier("binder.back")
+                Text("Step \(state.binderIndex + 1) of \(state.binderSteps.count)")
+                    .font(.caption).monospacedDigit()
+                Button("▶︎") { state.advanceBinder() }
+                    .disabled(!state.canAdvanceBinder)
+                    .accessibilityIdentifier("binder.advance")
+            }
             Spacer()
         }
         .buttonStyle(.bordered)
