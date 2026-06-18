@@ -52,6 +52,14 @@ struct PreviewPane: View {
                         }
                     }
                 }
+                .overlay(alignment: .leading) {
+                    if state.currentTool != nil {
+                        ToolOptionsPalette()
+                            .padding(.leading, Theme.Spacing.s)
+                            .transition(.move(edge: .leading).combined(with: .opacity))
+                    }
+                }
+                .animation(.easeOut(duration: 0.18), value: state.currentTool)
                 .padding(.horizontal, 12)
                 .accessibilityIdentifier("preview.pane")
                 if let notes = exhibit.notes, !notes.isEmpty {

@@ -4,6 +4,7 @@ struct ExhibitSidebar: View {
     @Environment(AppState.self) private var state
     @State private var searchText = ""
     @State private var grouping: SidebarGrouping = .party
+    @State private var sort: ExhibitSort = .custom
 
     var body: some View {
         @Bindable var state = state
@@ -36,9 +37,10 @@ struct ExhibitSidebar: View {
                     ForEach(section.exhibits) { exhibit in
                         row(for: exhibit).tag(exhibit.id)
                     }
-                    .onMove { from, to in
+                    // Drag-reorder only makes sense in Custom sort; the others are derived.
+                    .onMove(perform: sort == .custom ? { from, to in
                         CaseController(state: state).reorder(section: section.exhibits, from: from, to: to)
-                    }
+                    } : nil)
                 } header: {
                     Text(section.title.uppercased())
                         .font(Theme.Typography.sectionLabel)
@@ -48,6 +50,7 @@ struct ExhibitSidebar: View {
             }
         }
         .listStyle(.sidebar)
+        .safeAreaInset(edge: .top) { sortBar }
         .searchable(text: $searchText, placement: .sidebar, prompt: "Search id, witness, Bates…")
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
@@ -61,27 +64,44 @@ struct ExhibitSidebar: View {
         .accessibilityIdentifier("exhibit.sidebar")
     }
 
+    private var sortBar: some View {
+        @Bindable var state = state
+        return Picker("Sort", selection: $sort) {
+            ForEach(ExhibitSort.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal, Theme.Spacing.m)
+        .padding(.vertical, Theme.Spacing.s)
+        .background(.bar)
+        .accessibilityIdentifier("sidebar.sort")
+    }
+
     @ViewBuilder
     private func row(for exhibit: Exhibit) -> some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.xs + 2) {
-            HStack(spacing: Theme.Spacing.s) {
-                ExhibitNumberChip(number: exhibit.displayNumber)
-                if exhibit.isKey {
-                    Image(systemName: "star.fill")
-                        .font(.caption2)
-                        .foregroundStyle(Theme.Palette.accent)
-                        .accessibilityIdentifier("exhibit.keyglyph.\(exhibit.id)")
+        HStack(spacing: Theme.Spacing.m) {
+            thumbnail(for: exhibit)
+            VStack(alignment: .leading, spacing: Theme.Spacing.xs + 1) {
+                Text(exhibit.description)
+                    .font(Theme.Typography.itemTitle)
+                    .lineLimit(2)
+                if let witness = exhibit.witness, !witness.isEmpty {
+                    Label(witness, systemImage: "person")
+                        .font(Theme.Typography.meta)
+                        .foregroundStyle(Theme.Palette.mutedText)
                 }
-                Spacer(minLength: Theme.Spacing.s)
-                StatusBadge(status: exhibit.status)
             }
-            Text(exhibit.description)
-                .font(Theme.Typography.itemTitle)
-                .lineLimit(2)
-            if let witness = exhibit.witness, !witness.isEmpty {
-                Label(witness, systemImage: "person")
-                    .font(Theme.Typography.meta)
-                    .foregroundStyle(Theme.Palette.mutedText)
+            Spacer(minLength: Theme.Spacing.s)
+            VStack(alignment: .trailing, spacing: Theme.Spacing.xs) {
+                ExhibitNumberChip(number: exhibit.displayNumber)
+                HStack(spacing: Theme.Spacing.xs) {
+                    if exhibit.isKey {
+                        Image(systemName: "star.fill")
+                            .font(.caption2)
+                            .foregroundStyle(Theme.Palette.accent)
+                            .accessibilityIdentifier("exhibit.keyglyph.\(exhibit.id)")
+                    }
+                    StatusBadge(status: exhibit.status)
+                }
             }
         }
         .padding(.vertical, Theme.Spacing.xs)
@@ -104,6 +124,37 @@ struct ExhibitSidebar: View {
     private var keyExhibits: [Exhibit] { filtered.filter { $0.isKey } }
 
     private var sections: [ExhibitGrouping.Section] {
-        ExhibitGrouping.sections(for: filtered, mode: grouping)
+        ExhibitGrouping.sections(for: filtered, mode: grouping, sort: sort)
+    }
+
+    @ViewBuilder
+    private func thumbnail(for exhibit: Exhibit) -> some View {
+        Group {
+            if let folder = state.caseFolderURL,
+               let img = ThumbnailProvider.shared.thumbnail(
+                    for: folder.appendingPathComponent(exhibit.file), mediaType: exhibit.mediaType) {
+                Image(uiImage: img)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+            } else {
+                Image(systemName: mediaGlyph(exhibit.mediaType))
+                    .font(.title3)
+                    .foregroundStyle(Theme.Palette.mutedText)
+            }
+        }
+        .frame(width: 42, height: 54)
+        .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 4))
+        .overlay(RoundedRectangle(cornerRadius: 4).stroke(Theme.Palette.hairline, lineWidth: 0.75))
+        .accessibilityHidden(true)
+    }
+
+    private func mediaGlyph(_ type: MediaType) -> String {
+        switch type {
+        case .pdf:     return "doc.text"
+        case .image:   return "photo"
+        case .video:   return "play.rectangle"
+        case .audio:   return "waveform"
+        case .unknown: return "doc"
+        }
     }
 }

@@ -13,10 +13,11 @@ enum ExhibitGrouping {
 
     struct Section: Equatable { let title: String; let exhibits: [Exhibit] }
 
-    static func sections(for exhibits: [Exhibit], mode: SidebarGrouping) -> [Section] {
-        // Each section's exhibits honor manual drag-order, then import order.
+    static func sections(for exhibits: [Exhibit], mode: SidebarGrouping,
+                         sort: ExhibitSort = .custom) -> [Section] {
+        // Group first, then order each section by the chosen sort (default = manual order).
         rawSections(for: exhibits, mode: mode).map {
-            Section(title: $0.title, exhibits: ExhibitReorder.sorted($0.exhibits))
+            Section(title: $0.title, exhibits: ExhibitSorter.sorted($0.exhibits, by: sort))
         }
     }
 
