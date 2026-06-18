@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Iron Gavel — Operator Console</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="operator">
+    <div id="app">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark">⚖</span>
+          <span class="brand-name">Iron Gavel</span>
+          <span class="brand-sub">Operator Console</span>
+        </div>
+        <div class="case-block">
+          <h1 id="case-caption">Loading…</h1>
+          <div id="case-meta" class="case-meta"></div>
+        </div>
+        <div class="topbar-right">
+          <span id="contract-badge" class="pill"></span>
+          <span id="counts" class="pill pill-quiet"></span>
+          <span id="generated" class="pill pill-quiet"></span>
+          <button id="btn-reload" class="btn" type="button" title="Re-read exhibits.json">
+            ↻ Reload ledger
+          </button>
+          <button id="btn-open-jury" class="btn btn-accent" type="button">
+            ⧉ Open Jury Display
+          </button>
+        </div>
+      </header>
+
+      <div id="banner" class="banner"></div>
+
+      <main class="layout">
+        <section class="col col-list">
+          <div class="filters">
+            <input id="filter-q" type="search" placeholder="Search id, description, witness…" />
+            <select id="filter-status" aria-label="Filter by status">
+              <option value="all">All statuses</option>
+              <option value="pending">Pending</option>
+              <option value="offered">Offered</option>
+              <option value="objected">Objected</option>
+              <option value="admitted">Admitted</option>
+              <option value="excluded">Excluded</option>
+            </select>
+            <select id="filter-party" aria-label="Filter by party">
+              <option value="all">All parties</option>
+              <option value="Defense">Defense</option>
+              <option value="State">State</option>
+              <option value="Joint">Joint</option>
+              <option value="Court">Court</option>
+            </select>
+          </div>
+          <div id="exhibit-list" class="exhibit-list"></div>
+        </section>
+
+        <section class="col col-detail">
+          <div id="detail" class="detail"></div>
+          <div class="publish-bar">
+            <div class="publish-left">
+              <button id="btn-publish" class="btn btn-publish" type="button" disabled>
+                Publish to Jury
+              </button>
+              <span id="publish-reason" class="publish-reason"></span>
+            </div>
+            <div class="publish-right">
+              <div id="published-strip" class="published-strip"></div>
+              <button id="btn-blank" class="btn btn-danger" type="button" title="Esc">
+                ⛔ Blank jury screen
+              </button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="contract.js"></script>
+    <script src="channel.js"></script>
+    <script src="render.js"></script>
+    <script src="operator.js"></script>
+  </body>
+</html>
