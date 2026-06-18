@@ -230,7 +230,7 @@ struct PreviewPane: View {
             } label: {
                 Label(laserMode ? "Laser On" : "Laser", systemImage: "dot.scope")
             }
-            .tint(laserMode ? Theme.Palette.live : Theme.Palette.accent)
+            .tint(laserMode ? Theme.Palette.live : Theme.Palette.control)
             .accessibilityIdentifier("laser.toggle")
 
             Button {
@@ -240,12 +240,13 @@ struct PreviewPane: View {
             } label: {
                 Label(spotlightMode ? "Spotlight On" : "Spotlight", systemImage: "viewfinder")
             }
-            .tint(spotlightMode ? Theme.Palette.live : Theme.Palette.accent)
+            .tint(spotlightMode ? Theme.Palette.live : Theme.Palette.control)
             .accessibilityIdentifier("spotlight.toggle")
 
             Button { showComparePicker = true } label: {
                 Label("Compare", systemImage: "rectangle.split.2x1")
             }
+            .tint(Theme.Palette.control)
             .disabled(state.comparePrimary == nil)
             .accessibilityIdentifier("compare.open")
             Spacer()
