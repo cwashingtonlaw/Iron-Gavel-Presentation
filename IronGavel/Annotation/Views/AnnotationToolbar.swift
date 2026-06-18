@@ -19,8 +19,6 @@ struct AnnotationToolbar: View {
             .padding(3)
             .background(Theme.Palette.control.opacity(0.16), in: Capsule())
 
-            colorPicker
-
             Spacer(minLength: Theme.Spacing.s)
 
             Button(action: undo) {
@@ -74,24 +72,6 @@ struct AnnotationToolbar: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("annotation.tool.\(tool.rawValue)")
-    }
-
-    private var colorPicker: some View {
-        HStack(spacing: 8) {
-            ForEach(AnnotationColor.allCases, id: \.self) { c in
-                Button {
-                    state.currentColor = c
-                } label: {
-                    Circle()
-                        .fill(c.uiColor)
-                        .frame(width: 22, height: 22)
-                        .overlay(
-                            Circle().stroke(Color.primary, lineWidth: state.currentColor == c ? 2 : 0)
-                        )
-                }
-                .accessibilityIdentifier("annotation.color.\(c.rawValue)")
-            }
-        }
     }
 
     private func undo() {
