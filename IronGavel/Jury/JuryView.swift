@@ -8,10 +8,19 @@ struct JuryView: View {
             backgroundColor.ignoresSafeArea()
             content
         }
+        .overlay { exhibitStickers }
         .overlay(alignment: .bottom) { exhibitBanner }
         .overlay { SpotlightLayer() }
         .overlay { LaserLayer() }
         .accessibilityIdentifier("jury.view")
+    }
+
+    @ViewBuilder
+    private var exhibitStickers: some View {
+        if state.settings.showExhibitStickers,
+           case let .exhibit(exhibit, _, _) = state.juryDisplay {
+            ExhibitStickerOverlay(exhibit: exhibit)
+        }
     }
 
     private var backgroundColor: Color {

@@ -40,6 +40,35 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(state.juryDisplay, .empty)
     }
 
+    func test_isLiveToJury_tracks_published_vs_blank() {
+        let admitted = exhibit("D-001", status: .admitted)
+        let state = AppState()
+        state.apply(case: makeCase([admitted]), folder: URL(fileURLWithPath: "/tmp"))
+        XCTAssertFalse(state.isLiveToJury)          // nothing published
+        state.select(admitted)
+        state.publishSelected()
+        XCTAssertTrue(state.isLiveToJury)
+        state.blank()
+        XCTAssertFalse(state.isLiveToJury)
+    }
+
+    func test_setOutputLive_publishes_selected_then_holds_and_restores() {
+        let admitted = exhibit("D-001", status: .admitted)
+        let state = AppState()
+        state.apply(case: makeCase([admitted]), folder: URL(fileURLWithPath: "/tmp"))
+        state.select(admitted)
+
+        state.setOutputLive(true)                   // nothing published yet → publishes selection
+        XCTAssertTrue(state.isLiveToJury)
+        XCTAssertEqual(state.juryDisplay, .exhibit(admitted, page: 0, annotationsVersion: 0))
+
+        state.setOutputLive(false)                  // hold
+        XCTAssertEqual(state.juryDisplay, .blank)
+
+        state.setOutputLive(true)                   // restore last published
+        XCTAssertEqual(state.juryDisplay, .exhibit(admitted, page: 0, annotationsVersion: 0))
+    }
+
     func test_blank_then_restore_returns_to_last_published() {
         let admitted = exhibit("D-001", status: .admitted)
         let state = AppState()

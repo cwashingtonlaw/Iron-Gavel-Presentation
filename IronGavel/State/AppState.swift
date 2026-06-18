@@ -179,6 +179,26 @@ final class AppState {
         }
     }
 
+    /// Is the jury currently showing live content (an exhibit or the whiteboard)?
+    /// The OUTPUT toggle's master state.
+    var isLiveToJury: Bool {
+        switch juryDisplay {
+        case .exhibit, .whiteboard: return true
+        case .empty, .blank:        return false
+        }
+    }
+
+    /// Master OUTPUT control. On → reveal the staged content (restore the last published
+    /// exhibit, or publish the current admitted selection if nothing is staged yet).
+    /// Off → hold the jury dark.
+    func setOutputLive(_ on: Bool) {
+        if on {
+            if lastPublished != nil { restore() } else { publishSelected() }
+        } else {
+            blank()
+        }
+    }
+
     /// Re-publishes whatever the jury was last showing, after a relaunch.
     /// Only restores if the saved exhibit still exists in the loaded case and is admitted.
     func restorePublishedState() {
