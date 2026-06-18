@@ -5,6 +5,12 @@ import Observation
 @MainActor
 @Observable
 final class AppState {
+    /// The single process-wide state shared by the presenter window and the external
+    /// jury scene. Using one instance (instead of an optional set late in onAppear) means
+    /// an external display attached at cold launch never races into a permanent blank
+    /// window — the jury scene always has the real state. Tests still construct `AppState()`.
+    static let shared = AppState()
+
     private(set) var currentCase: Case?
     private(set) var caseFolderURL: URL?
     var selectedExhibit: Exhibit?
