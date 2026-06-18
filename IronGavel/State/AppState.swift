@@ -38,9 +38,15 @@ final class AppState {
     let videoController = VideoController()
     let settings: SettingsStore
 
+    /// Ordered presentation binder (run-of-show). Persisted to Trial/binder.json.
+    private(set) var binderSteps: [BinderStep] = []
+    /// Index of the binder step currently being shown. Only meaningful when stepping.
+    private(set) var binderIndex: Int = 0
+
     @ObservationIgnored private var saveTasks: [String: Task<Void, Never>] = [:]
     @ObservationIgnored private let writer = AnnotationWriter()
     @ObservationIgnored private let publishStateStore: PublishStateStore
+    @ObservationIgnored private let binderStore = BinderStore()
 
     init(publishStateStore: PublishStateStore = PublishStateStore(),
          settings: SettingsStore? = nil) {
@@ -55,8 +61,13 @@ final class AppState {
 
     func apply(case kase: Case, folder: URL) {
         let previousCase = self.currentCase
+        let switchingCase = previousCase == nil || self.caseFolderURL != folder
         self.currentCase = kase
         self.caseFolderURL = folder
+        if switchingCase {
+            binderSteps = binderStore.load(from: folder)
+            binderIndex = 0
+        }
 
         if let previousCase, case let .exhibit(published, page, _) = juryDisplay {
             let updated = kase.exhibits.first(where: { $0.id == published.id })
@@ -190,6 +201,52 @@ final class AppState {
 
     func dismissBanner() {
         lastStatusBanner = nil
+    }
+
+    // MARK: Presentation binder
+
+    var canAdvanceBinder: Bool { binderIndex + 1 < binderSteps.count }
+    var canBackBinder: Bool { binderIndex > 0 && !binderSteps.isEmpty }
+
+    func addBinderStep(exhibitId: String, page: Int) {
+        binderSteps.append(BinderStep(exhibitId: exhibitId, page: page))
+        persistBinder()
+    }
+
+    func removeBinderStep(at offsets: IndexSet) {
+        binderSteps.remove(atOffsets: offsets)
+        binderIndex = min(binderIndex, max(0, binderSteps.count - 1))
+        persistBinder()
+    }
+
+    func moveBinderStep(from: IndexSet, to: Int) {
+        binderSteps.move(fromOffsets: from, toOffset: to)
+        persistBinder()
+    }
+
+    /// Selects and publishes the step at `index` (if the exhibit exists and is admitted).
+    func goToBinderStep(_ index: Int) {
+        guard binderSteps.indices.contains(index), let kase = currentCase else { return }
+        let step = binderSteps[index]
+        guard let exhibit = kase.exhibits.first(where: { $0.id == step.exhibitId }),
+              exhibit.status == .admitted else { return }
+        binderIndex = index
+        selectedExhibit = exhibit
+        let v = annotationStore.pageVersion(exhibitId: exhibit.id, page: step.page)
+        juryDisplay = .exhibit(exhibit, page: step.page, annotationsVersion: v)
+        lastPublished = (exhibit, step.page)
+        lastStatusBanner = nil
+        juryViewport = .full
+        spotlight = nil
+        persistPublishState()
+    }
+
+    func advanceBinder() { if canAdvanceBinder { goToBinderStep(binderIndex + 1) } }
+    func backBinder() { if canBackBinder { goToBinderStep(binderIndex - 1) } }
+
+    private func persistBinder() {
+        guard let folder = caseFolderURL else { return }
+        try? binderStore.save(binderSteps, to: folder)
     }
 
     private func handleAnnotationChange(for exhibitId: String) {
