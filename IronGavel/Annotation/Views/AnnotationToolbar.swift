@@ -8,37 +8,43 @@ struct AnnotationToolbar: View {
     @State private var showClearConfirm = false
 
     var body: some View {
-        HStack(spacing: 14) {
-            toolButton(.highlight, icon: "highlighter")
-            toolButton(.redact, icon: "rectangle.fill")
-            toolButton(.callout, icon: "rectangle.dashed.and.paperclip")
-            toolButton(.freehand, icon: "pencil.tip")
-
-            Divider().frame(height: 22)
+        HStack(spacing: Theme.Spacing.m) {
+            // Segmented "tools" pill — TrialPad's defining control. Active tool = red fill.
+            HStack(spacing: 2) {
+                toolButton(.callout, label: "CALLOUT", icon: "rectangle.dashed.and.paperclip")
+                toolButton(.highlight, label: "HIGHLIGHT", icon: "highlighter")
+                toolButton(.freehand, label: "PEN", icon: "pencil.tip")
+                toolButton(.redact, label: "REDACT", icon: "rectangle.fill")
+            }
+            .padding(3)
+            .background(Theme.Palette.control.opacity(0.16), in: Capsule())
 
             colorPicker
 
-            Divider().frame(height: 22)
+            Spacer(minLength: Theme.Spacing.s)
 
             Button(action: undo) {
-                Label("Undo", systemImage: "arrow.uturn.backward")
+                Image(systemName: "arrow.uturn.backward")
             }
+            .accessibilityLabel("Undo")
             .accessibilityIdentifier("annotation.undo")
 
             Button(action: { showClearConfirm = true }) {
-                Label("Clear", systemImage: "trash")
+                Image(systemName: "trash")
             }
+            .tint(Theme.Palette.live)
+            .accessibilityLabel("Clear")
             .accessibilityIdentifier("annotation.clear")
 
-            Spacer()
-
             Button(action: onExport) {
-                Label("Save Copy", systemImage: "square.and.arrow.down")
+                Image(systemName: "square.and.arrow.down")
             }
+            .accessibilityLabel("Save Copy")
             .accessibilityIdentifier("annotation.export")
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        .font(.callout)
+        .padding(.horizontal, Theme.Spacing.m)
+        .padding(.vertical, Theme.Spacing.s)
         .sheet(isPresented: $showClearConfirm) {
             ClearPageConfirm(
                 page: page,
@@ -49,15 +55,24 @@ struct AnnotationToolbar: View {
     }
 
     @ViewBuilder
-    private func toolButton(_ tool: AnnotationTool, icon: String) -> some View {
+    private func toolButton(_ tool: AnnotationTool, label: String, icon: String) -> some View {
+        let active = state.currentTool == tool
         Button {
-            state.currentTool = (state.currentTool == tool) ? nil : tool
+            state.currentTool = active ? nil : tool
         } label: {
-            Image(systemName: icon)
-                .padding(6)
-                .background(state.currentTool == tool ? Color.accentColor.opacity(0.25) : Color.clear)
-                .clipShape(RoundedRectangle(cornerRadius: 6))
+            HStack(spacing: 5) {
+                Image(systemName: icon).imageScale(.small)
+                Text(label)
+                    .font(.caption.weight(.semibold))
+                    .tracking(0.4)
+            }
+            .padding(.horizontal, Theme.Spacing.m)
+            .padding(.vertical, 6)
+            .foregroundStyle(active ? Color.white : Theme.Palette.control)
+            .background(active ? Theme.Palette.live : Color.clear, in: Capsule())
+            .contentShape(Capsule())
         }
+        .buttonStyle(.plain)
         .accessibilityIdentifier("annotation.tool.\(tool.rawValue)")
     }
 
