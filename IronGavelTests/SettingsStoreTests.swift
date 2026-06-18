@@ -20,6 +20,7 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertEqual(s.defaultAnnotationColor, .yellow)
         XCTAssertEqual(s.juryBackground, .black)
         XCTAssertFalse(s.juryShowExhibitBanner)
+        XCTAssertTrue(s.showExhibitStickers)
         XCTAssertTrue(s.autoBlankOnDowngrade)
         XCTAssertTrue(s.confirmationPromptsEnabled)
         XCTAssertEqual(s.highlightOpacity, 0.4, accuracy: 0.0001)
@@ -30,6 +31,7 @@ final class SettingsStoreTests: XCTestCase {
         let s1 = SettingsStore(defaults: d)
         s1.juryBackground = .white
         s1.juryShowExhibitBanner = true
+        s1.showExhibitStickers = false
         s1.autoBlankOnDowngrade = false
         s1.defaultAnnotationColor = .red
         s1.highlightOpacity = 0.3
@@ -37,6 +39,7 @@ final class SettingsStoreTests: XCTestCase {
         let s2 = SettingsStore(defaults: d)
         XCTAssertEqual(s2.juryBackground, .white)
         XCTAssertTrue(s2.juryShowExhibitBanner)
+        XCTAssertFalse(s2.showExhibitStickers)
         XCTAssertFalse(s2.autoBlankOnDowngrade)
         XCTAssertEqual(s2.defaultAnnotationColor, .red)
         XCTAssertEqual(s2.highlightOpacity, 0.3, accuracy: 0.0001)

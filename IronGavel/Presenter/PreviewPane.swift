@@ -52,6 +52,11 @@ struct PreviewPane: View {
                         }
                     }
                 }
+                .overlay {
+                    if state.settings.showExhibitStickers {
+                        ExhibitStickerOverlay(exhibit: exhibit)
+                    }
+                }
                 .overlay(alignment: .leading) {
                     if state.currentTool != nil {
                         ToolOptionsPalette()
@@ -62,6 +67,7 @@ struct PreviewPane: View {
                 .animation(.easeOut(duration: 0.18), value: state.currentTool)
                 .padding(.horizontal, 12)
                 .accessibilityIdentifier("preview.pane")
+                outputBar()
                 if let notes = exhibit.notes, !notes.isEmpty {
                     presenterNotes(notes)
                 }
@@ -228,6 +234,36 @@ struct PreviewPane: View {
                 .padding(.horizontal, 12)
                 .accessibilityIdentifier("preview.pane")
         }
+    }
+
+    private func outputBar() -> some View {
+        let live = state.isLiveToJury
+        return HStack(spacing: Theme.Spacing.m) {
+            Toggle(isOn: Binding(get: { state.isLiveToJury },
+                                 set: { state.setOutputLive($0) })) {
+                Text("OUTPUT")
+                    .font(.caption.weight(.heavy))
+                    .tracking(1.2)
+                    .foregroundStyle(Theme.Palette.mutedText)
+            }
+            .toggleStyle(.switch)
+            .tint(Theme.Palette.live)
+            .fixedSize()
+            .keyboardShortcut("o", modifiers: .command)
+            .accessibilityIdentifier("output.toggle")
+
+            HStack(spacing: 5) {
+                Circle()
+                    .fill(live ? Theme.Palette.live : Theme.Palette.control)
+                    .frame(width: 8, height: 8)
+                Text(live ? "LIVE TO JURY" : "HELD")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(live ? Theme.Palette.live : Theme.Palette.mutedText)
+            }
+            Spacer()
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, Theme.Spacing.xs)
     }
 
     private func presenterControls() -> some View {

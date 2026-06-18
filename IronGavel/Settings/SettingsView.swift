@@ -15,6 +15,8 @@ struct SettingsView: View {
                     .accessibilityIdentifier("settings.juryBackground")
                     Toggle("Show exhibit caption banner", isOn: $settings.juryShowExhibitBanner)
                         .accessibilityIdentifier("settings.juryBanner")
+                    Toggle("Show exhibit stickers on documents", isOn: $settings.showExhibitStickers)
+                        .accessibilityIdentifier("settings.exhibitStickers")
                 }
 
                 Section("Annotation") {

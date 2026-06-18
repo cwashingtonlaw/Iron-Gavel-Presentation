@@ -28,6 +28,9 @@ final class SettingsStore {
     var juryShowExhibitBanner: Bool {
         didSet { defaults.set(juryShowExhibitBanner, forKey: K.juryBanner) }
     }
+    var showExhibitStickers: Bool {
+        didSet { defaults.set(showExhibitStickers, forKey: K.stickers) }
+    }
     var confirmationPromptsEnabled: Bool {
         didSet { defaults.set(confirmationPromptsEnabled, forKey: K.confirm) }
     }
@@ -45,6 +48,7 @@ final class SettingsStore {
         self.freehandPenWidth = defaults.object(forKey: K.pen) as? Double ?? 4
         self.juryBackground = JuryBackground(rawValue: defaults.string(forKey: K.juryBg) ?? "") ?? .black
         self.juryShowExhibitBanner = defaults.object(forKey: K.juryBanner) as? Bool ?? false
+        self.showExhibitStickers = defaults.object(forKey: K.stickers) as? Bool ?? true
         self.confirmationPromptsEnabled = defaults.object(forKey: K.confirm) as? Bool ?? true
         self.largeText = defaults.object(forKey: K.largeText) as? Bool ?? false
         self.autoBlankOnDowngrade = defaults.object(forKey: K.autoBlank) as? Bool ?? true
@@ -56,6 +60,7 @@ final class SettingsStore {
         static let pen = "iron-gavel.settings.freehandPenWidth"
         static let juryBg = "iron-gavel.settings.juryBackground"
         static let juryBanner = "iron-gavel.settings.juryBanner"
+        static let stickers = "iron-gavel.settings.showExhibitStickers"
         static let confirm = "iron-gavel.settings.confirmations"
         static let largeText = "iron-gavel.settings.largeText"
         static let autoBlank = "iron-gavel.settings.autoBlank"
